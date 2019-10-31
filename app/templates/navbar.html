@@ -1,0 +1,27 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <div class="navbar-header">
+            <button class="navbar-toggler" type="button" data-toggle="collapse"
+                    data-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand" href="#">MYFLASKPRO</a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                {{ render_nav_item('abc.test', 'Home', use_li=True) }}
+                {#            {{ render_nav_item('test_form', 'Form', use_li=True) }}#}
+                {#            {{ render_nav_item('test_nav', 'Nav', use_li=True) }}#}
+                {#            {{ render_nav_item('test_pagination', 'Pagination', use_li=True) }}#}
+                {#            {{ render_nav_item('test_utils', 'Utils', use_li=True) }}#}
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                {{ render_nav_item('abc.test', 'Login', use_li=True) }}
+            </ul>
+        </div>
+    </div>
+</nav>
