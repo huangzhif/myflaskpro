@@ -11,7 +11,9 @@ basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 # 导入蓝图名称
 # from app.main.test import abc
 blueprints = [
-    "app.main.test:abc"
+    "app.main.test:abc",
+    "app.main.index:bp_index",
+    "app.main.account:bp_login"
 ]
 
 # 扩展
