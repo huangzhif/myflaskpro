@@ -5,41 +5,31 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Bootstrap-Flask Demo Application</title>
-    {{ bootstrap.load_css() }}
-    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" type="text/css">
+    {% include "head_css_js.html" %}
 </head>
 <body>
 <div id="login">
-    <h3 class="text-center text-white pt-5">Login form</h3>
+{#    <h3 class="text-center text-white pt-5">Login form</h3>#}
     <div class="container">
         <div id="login-row"
              class="row justify-content-center align-items-center">
             <div id="login-column" class="col-md-6">
                 <div id="login-box" class="col-md-12">
                     <form id="login-form" class="form" action="" method="post">
+                        {{ form.hidden_tag() }}
                         <h3 class="text-center text-info">Login</h3>
                         <div class="form-group">
-                            <label for="username"
-                                   class="text-info">Username:</label><br>
-                            <input type="text" name="username" id="username"
-                                   class="form-control">
+                            {{ form.username.label(class="text-info") }}<br>
+                            {{ form.username(class="form-control") }}
                         </div>
                         <div class="form-group">
-                            <label for="password"
-                                   class="text-info">Password:</label><br>
-                            <input type="text" name="password" id="password"
-                                   class="form-control">
+                            {{ form.password.label(class="text-info") }}<br>
+                            {{ form.password(class="form-control") }}
                         </div>
                         <div class="form-group">
-                            <label for="remember-me" class="text-info"><span>Remember me</span> <span><input
-                                    id="remember-me" name="remember-me"
-                                    type="checkbox"></span></label><br>
-                            <input type="submit" name="submit"
-                                   class="btn btn-info btn-md" value="submit">
-                        </div>
-                        <div id="register-link" class="text-right">
-                            <a href="#" class="text-info">Register here</a>
+                            {{ form.remember_me.label(class="text-info") }} {{ form.remember_me }}<br>
+                            {{ form.submit(class="btn btn-info btn-md") }}
+
                         </div>
                     </form>
                 </div>
@@ -47,7 +37,5 @@
         </div>
     </div>
 </div>
-
 </body>
-
 </html>
