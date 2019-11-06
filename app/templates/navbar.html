@@ -5,12 +5,15 @@
 
     <ul class="list-unstyled components">
 {#        <p>Dummy Heading</p>#}
+        <li>
+            <a href="{{ url_for('bp_index.index') }}">首页</a>
+        </li>
         <li class="active">
             <a href="#homeSubmenu" data-toggle="collapse" aria-expanded="false"
                class="dropdown-toggle">用户信息</a>
             <ul class="collapse list-unstyled" id="homeSubmenu">
                 <li>
-                    <a href="#">用户列表</a>
+                    <a href="{{ url_for('bp_users.users_list') }}">用户列表</a>
                 </li>
 {#                <li>#}
 {#                    <a href="#">Home 2</a>#}
@@ -20,9 +23,7 @@
 {#                </li>#}
             </ul>
         </li>
-{#        <li>#}
-{#            <a href="#">About</a>#}
-{#        </li>#}
+
 {#        <li>#}
 {#            <a href="#pageSubmenu" data-toggle="collapse" aria-expanded="false"#}
 {#               class="dropdown-toggle">Pages</a>#}
@@ -47,32 +48,3 @@
     </ul>
 </nav>
 
-<div id="content">
-    <nav class="navbar navbar-expand-md navbar-light bg-light">
-        <div class="container-fluid">
-
-            <button type="button" id="sidebarCollapse"
-                    class="btn btn-info">
-                <i class="fas fa-align-left"></i>
-            </button>
-            <div id="navbarCollapse" class="collapse navbar-collapse">
-
-                <ul class="nav navbar-nav ml-auto">
-                    <li class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle"
-                           data-toggle="dropdown">Administrator</a>
-                        <div class="dropdown-menu dropdown-menu-right">
-                            <a href="#" class="dropdown-item">个人信息</a>
-                            <a href="#" class="dropdown-item">修改密码</a>
-                            <div class="dropdown-divider"></div>
-                            <a href="{{ url_for('bp_account.logout') }}" class="dropdown-item">注销</a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    {% block content %}
-
-    {% endblock %}
-</div>

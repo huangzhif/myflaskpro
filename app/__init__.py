@@ -13,7 +13,8 @@ basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 blueprints = [
     "app.main.test:abc",
     "app.main.index:bp_index",
-    "app.main.account:bp_account"
+    "app.main.account:bp_account",
+    "app.main.usersinfo:bp_users"
 ]
 
 # 扩展
