@@ -4,6 +4,10 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask
 from werkzeug.utils import import_string
 from flask_bootstrap import Bootstrap
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
+
 
 
 basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -19,6 +23,8 @@ blueprints = [
 
 # 扩展
 bootstrap = Bootstrap()
+db = SQLAlchemy()
+migrate = Migrate()
 
 
 def create_app():
@@ -30,12 +36,28 @@ def create_app():
     # 注册扩展
     register_logging(app)
     register_extensions(app)
+    register_blueprint(app)
+    register_modelobj()
+    register_shell_context(app)
 
+    return app
+
+
+def register_modelobj():
+    # 在migrate之前需要导入 models
+    from .models import User
+
+
+def register_shell_context(app):
+    @app.shell_context_processor
+    def make_shell_context():
+        return dict(db=db, User=User)
+
+
+def register_blueprint(app):
     for bp_name in blueprints:
         bp = import_string(bp_name)
         app.register_blueprint(bp)
-
-    return app
 
 
 def register_extensions(app):
@@ -45,6 +67,8 @@ def register_extensions(app):
     :return:
     """
     bootstrap.init_app(app)
+    db.init_app(app)
+    migrate.init_app(app,db)
 
 
 def register_logging(app):
@@ -57,3 +81,6 @@ def register_logging(app):
 
     if not app.debug:
         app.logger.addHandler(file_handler)
+
+
+
