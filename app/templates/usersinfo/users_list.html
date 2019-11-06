@@ -4,41 +4,48 @@
 <div class="card">
     <div class="card-body">
         <div class="col-sm-1" style="padding-left: 0">
-            <button type="button" class="btn btn-info">新增用户</button>
+            <a href="{{ url_for('bp_users.create_user') }}" class="btn btn-sm btn-info">创建用户</a>
         </div>
-        <table class="table table-striped" style="margin-top: 5px">
-            <thead>
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">First</th>
-                <th scope="col">Last</th>
-                <th scope="col">Handle</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <th scope="row">1</th>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
-            </tr>
-            <tr>
-                <th scope="row">2</th>
-                <td>Jacob</td>
-                <td>Thornton</td>
-                <td>@fat</td>
-            </tr>
-            <tr>
-                <th scope="row">3</th>
-                <td>Larry</td>
-                <td>the Bird</td>
-                <td>@twitter</td>
-            </tr>
-            </tbody>
+        <table class="table table-striped"
+               id="id_userslist">
         </table>
     </div>
 </div>
+{% endblock %}
+{% block custom_foot_js %}
+    <script type="text/javascript">
+    var operateFormatter = function (value, row, index) {//赋予的参数
+        console.info(value,row,index);
+      return [
+          '<button class="btn btn-info btn-sm rightSize detailBtn" type="button">编辑</button>',
+          '<button class="btn btn-danger btn-sm rightSize packageBtn" type="button">删除</button>'
+      ].join(' ');
+  }
 
-
-
+        $("#id_userslist").bootstrapTable({
+            url: "{{ url_for('bp_users.get_users') }}",
+            pagination: true,
+            pageList: [10, 20],
+            search: true,
+            classes: "table table-hover",
+            columns: [{
+                field: 'idx',
+                title: '序号'
+            },
+                {
+                    field: 'username',
+                    title: '用户名'
+                },
+                {
+                    field: 'email',
+                    title: '邮箱'
+                },{
+                      field: 'operate',
+                      title: '操作',
+                      align: 'center',
+                      valign: 'middle',
+                      formatter: operateFormatter //自定义方法，添加操作按钮
+                  }]
+        })
+    </script>
 {% endblock %}

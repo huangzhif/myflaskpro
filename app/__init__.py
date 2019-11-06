@@ -8,8 +8,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
 
-
-
 basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 # 导入蓝图名称
