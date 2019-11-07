@@ -8,6 +8,13 @@
     {% include "head_css_js.html" %}
 </head>
 <body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category,message in messages %}
+            <div class="alert {{ category }}" role="alert">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 <div id="login">
 {#    <h3 class="text-center text-white pt-5">Login form</h3>#}
     <div class="container">

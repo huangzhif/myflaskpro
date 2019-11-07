@@ -6,6 +6,7 @@ from werkzeug.utils import import_string
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import LoginManager
 
 
 basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -23,6 +24,11 @@ blueprints = [
 bootstrap = Bootstrap()
 db = SQLAlchemy()
 migrate = Migrate()
+login_manager = LoginManager()
+login_manager.login_view = "bp_account.login"
+login_manager.login_message_category = "alert-warning"
+login_manager.login_message = "Access denied"
+login_manager.session_protection = "strong"
 
 
 def create_app():
@@ -30,6 +36,7 @@ def create_app():
 
     app.config.from_object('config')
     app.config.from_pyfile("config.py")
+    # app.config.from_envvar("APP_CONFIG_FILE")
 
     # 注册扩展
     register_logging(app)
@@ -67,6 +74,7 @@ def register_extensions(app):
     bootstrap.init_app(app)
     db.init_app(app)
     migrate.init_app(app,db)
+    login_manager.init_app(app)
 
 
 def register_logging(app):
