@@ -1,8 +1,9 @@
 from app.forms.account import LoginForm
-from flask import Blueprint, current_app, redirect, render_template, request, url_for,flash
+from flask import Blueprint, current_app, redirect, render_template, request, url_for,flash,abort
 from flask_login import current_user,login_user,logout_user,login_required
-from ..models import User
+from app.models import User
 from werkzeug.urls import url_parse
+from is_safe_url import is_safe_url
 
 bp_account = Blueprint("bp_account", __name__, url_prefix="/account")
 
@@ -29,6 +30,8 @@ def login():
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('bp_index.index')
+        elif not is_safe_url(next_page):
+            return abort(404)
         return redirect(next_page)
     return render_template("account/login.html", form=form)
 

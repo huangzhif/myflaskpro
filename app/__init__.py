@@ -1,34 +1,18 @@
 import os
 import logging
 from logging.handlers import RotatingFileHandler
-from flask import Flask
+from flask import Flask,session
 from werkzeug.utils import import_string
-from flask_bootstrap import Bootstrap
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_login import LoginManager
+# from flask_bootstrap import Bootstrap
+# from flask_sqlalchemy import SQLAlchemy
+# from flask_migrate import Migrate
+# from flask_login import LoginManager
+from datetime import datetime,timedelta
+from app.models import User
+from app.extensions import bootstrap,db,migrate,login_manager
 
 
 basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-
-# 导入蓝图名称
-# from app.main.test import abc
-blueprints = [
-    "app.main.test:abc",
-    "app.main.index:bp_index",
-    "app.main.account:bp_account",
-    "app.main.usersinfo:bp_users"
-]
-
-# 扩展
-bootstrap = Bootstrap()
-db = SQLAlchemy()
-migrate = Migrate()
-login_manager = LoginManager()
-login_manager.login_view = "bp_account.login"
-login_manager.login_message_category = "alert-warning"
-login_manager.login_message = "Access denied"
-login_manager.session_protection = "strong"
 
 
 def create_app():
@@ -42,15 +26,18 @@ def create_app():
     register_logging(app)
     register_extensions(app)
     register_blueprint(app)
-    register_modelobj()
+    # register_modelobj()
     register_shell_context(app)
+    register_session_lifetime(app)
 
     return app
 
 
-def register_modelobj():
-    # 在migrate之前需要导入 models
-    from .models import User
+def register_session_lifetime(app):
+    @app.before_request
+    def before_request():
+        session.permanent = True
+        app.permanent_session_lifetime = timedelta(minutes=30)
 
 
 def register_shell_context(app):
@@ -60,6 +47,13 @@ def register_shell_context(app):
 
 
 def register_blueprint(app):
+    # from app.main.test import abc
+    blueprints = [
+        "app.main.test:abc",
+        "app.main.index:bp_index",
+        "app.main.account:bp_account",
+        "app.main.usersinfo:bp_users"
+    ]
     for bp_name in blueprints:
         bp = import_string(bp_name)
         app.register_blueprint(bp)

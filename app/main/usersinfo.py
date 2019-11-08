@@ -1,9 +1,9 @@
 import json
-from app import db
-from app.models import User
+from app.models import db, User
+# from app.models import User
 from flask import Blueprint,render_template,flash,request,jsonify
-from ..forms.usersinfo import CreateUserForm
-from ..apis.api import PyCrypt
+from app.forms.usersinfo import CreateUserForm
+from app.apis.api import PyCrypt
 
 
 bp_users = Blueprint("bp_users",__name__,url_prefix="/users")
@@ -33,8 +33,9 @@ def create_user():
     form = CreateUserForm()
     if form.validate_on_submit():
         user = User(username=form.username.data,email=form.email.data,is_active=form.is_active.data)
-        password = PyCrypt.gen_rand_pass(16)
-        print(password)
+        # password = PyCrypt.gen_rand_pass(16)
+        password = "123456"
+        # print(password)
         user.set_password(password)
         db.session.add(user)
         try:
