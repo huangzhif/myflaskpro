@@ -99,8 +99,8 @@
                         <li class="dropdown">
                             <a data-toggle="dropdown" class="dropdown-toggle" href="#">
                             <span class="m-r-sm text-muted welcome-message">
-                            <img alt="image" class="img-circle" width="30" height="30" src="{{ url_for('static',filename='img/p7.jpg') }}">
-                            <span style="font-size: 13px;font-weight: 400"> Administrator
+                            <img alt="image" class="img-circle" width="30" height="30" src="{{ current_user.avatar() }}">
+                            <span style="font-size: 13px;font-weight: 400"> {{ current_user.username }}
                                 <b class="caret"></b>
                             </span>
                             </span>
@@ -108,7 +108,7 @@
                             <ul class="dropdown-menu animated fadeInRight m-t-xs profile-dropdown">
                                 <li><a href="#"><i class="fa fa-cogs"> </i><span> 个人信息</span></a></li>
                                 <li><a id="switch_user"><i class="fa fa-exchange"></i><span> 用户页面</span></a></li>
-                                <li><a href="login.html"><i class="fa fa-sign-out"></i> 注销登录</a></li>
+                                <li><a href="{{ url_for('bp_account.logout') }}"><i class="fa fa-sign-out"></i> 注销登录</a></li>
                             </ul>
                          </li>
                     </ul>

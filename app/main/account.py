@@ -30,7 +30,9 @@ def login():
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('bp_index.index')
-        elif not is_safe_url(next_page):
+
+        # 后面allowhost按实际填写
+        elif not is_safe_url(next_page,{"http://192.168.56.100:5000/"}):
             return abort(404)
         return redirect(next_page)
     return render_template("account/login.html", form=form)

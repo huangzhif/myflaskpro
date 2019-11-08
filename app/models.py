@@ -1,6 +1,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from app.extensions import db,login_manager
+from hashlib import md5
 
 
 class User(UserMixin, db.Model):
@@ -10,6 +11,16 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
     is_active = db.Column(db.Boolean)
+
+    """
+    有人问我为什么不在系统做个上传头像的功能：
+    有两个原因：
+    第一个是懒；
+    第二个是因为我喜欢直接拿别人的东西来用；
+    """
+    def avatar(self, size=36):
+        digest = md5(self.email.lower().encode('utf-8')).hexdigest()
+        return 'https://www.gravatar.com/avatar/{}?d=identicon&s={}'.format(digest, size)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
