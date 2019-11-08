@@ -1,78 +1,165 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Bootstrap-Flask Demo Application</title>
 
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="renderer" content="webkit">
+
+    <title>运维管理系统</title>
+    <meta name="keywords" content="运维管理系统">
+    <meta name="description" content="运维管理系统">
     {% include "head_css_js.html" %}
 
 </head>
+
 <body>
-<div class="wrapper">
-        <!-- Sidebar  -->
-{% block navbar %}
-{% include "navbar.html" %}
-{% endblock %}
+    <div id="wrapper">
+        <nav class="navbar-default navbar-static-side" role="navigation">
+            <div class="sidebar-collapse">
+                <ul class="nav" id="side-menu">
+                    <li class="nav-header">
 
-<div id="content">
-    <nav class="navbar navbar-expand-md navbar-light bg-light">
-        <div class="container-fluid">
+                        <div class="profile-element" style="height: 100px">
+                            <div href="#" target="_blank" style="width: 100%;padding:20px;">
+                                <a class="navbar-brand" href="#">MyFlaskAPP</a>
+                            </div>
+                        </div>
 
-            <button type="button" id="sidebarCollapse"
-                    class="btn btn-info">
-                <i class="fas fa-align-left"></i>
-            </button>
-            <div id="navbarCollapse" class="collapse navbar-collapse">
-
-                <ul class="nav navbar-nav ml-auto">
-                    <li class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle"
-                           data-toggle="dropdown">{{ current_user.username }}</a>
-                        <div class="dropdown-menu dropdown-menu-right">
-                            <a href="#" class="dropdown-item">个人信息</a>
-                            <a href="#" class="dropdown-item">修改密码</a>
-                            <div class="dropdown-divider"></div>
-                            <a href="{{ url_for('bp_account.logout') }}" class="dropdown-item">注销</a>
+                        <div class="logo-element">
+                            F
                         </div>
                     </li>
+
+                    <li class="active">
+                        <a href="{{ url_for('bp_index.index') }}"><i class="fa fa-dashboard" style="width: 20px"></i> <span class="nav-label">仪表盘</span></a>
+                    </li>
+
+                    <li>
+                        <a href="#"><i class="fa fa-group" style="width: 20px"></i> <span class="nav-label">用户管理</span> <span class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level">
+                            <li><a href="#">用户列表</a>
+                            </li>
+{#                            <li><a href="#">用户组</a>#}
+{#                            </li>#}
+{#                            <li><a href="#">授权</a>#}
+{#                            </li>#}
+                        </ul>
+                    </li>
+
+{#                    <li>#}
+{#                        <a href="#"><i class="fa fa fa-inbox" style="width: 20px"></i> <span class="nav-label">资产管理</span><span class="fa arrow"></span></a>#}
+{#                        <ul class="nav nav-second-level">#}
+{#                            <li><a href="#">厂商信息<span class="fa arrow"></span></a>#}
+{#                                <ul class="nav nav-third-level">#}
+{#                                    <li><a href="#">阿里云</a></li>#}
+{#                                    <li><a href="#">AWS</a></li>#}
+{#                                    <li><a href="#">其它</a></li>#}
+{#                                </ul>#}
+{#                            </li>#}
+{#                            <li><a href="#">资产列表<span class="fa arrow"></span></a>#}
+{#                                <ul class="nav nav-third-level">#}
+{#                                    <li><a href="#">服务器</a></li>#}
+{#                                    <li><a href="#">数据库</a></li>#}
+{#                                    <li><a href="#">其它</a></li>#}
+{#                                </ul>#}
+{#                            </li>#}
+{#                        </ul>#}
+{#                    </li>#}
+
+{#                    <li>#}
+{#                        <a href="#"><i class="fa fa-hourglass-start" style="width: 20px"></i> <span class="nav-label">游戏任务</span><span class="fa arrow"></span></a>#}
+{#                        <ul class="nav nav-second-level">#}
+{#                            <li><a href="#">服务初始化</a>#}
+{#                            </li>#}
+{#                            <li><a href="#">开服</a>#}
+{#                            </li>#}
+{#                            <li><a href="#">更新</a>#}
+{#                            </li>#}
+{#                            <li><a href="#">关服/重启</a>#}
+{#                            </li>#}
+{#                            <li><a href="#">数据备份</a>#}
+{#                            </li>#}
+{#                        </ul>#}
+{#                    </li>#}
+
                 </ul>
             </div>
+        </nav>
+
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+
+            <div class="row border-bottom">
+                <nav class="navbar navbar-static-top" role="navigation" style="margin-bottom: 0">
+
+                    <div class="navbar-header">
+                        <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#"><i class="fa fa-bars"></i> </a>
+                    </div>
+
+                    <ul class="nav navbar-top-links navbar-right">
+                        <li class="dropdown">
+                            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            <span class="m-r-sm text-muted welcome-message">
+                            <img alt="image" class="img-circle" width="30" height="30" src="{{ url_for('static',filename='img/p7.jpg') }}">
+                            <span style="font-size: 13px;font-weight: 400"> Administrator
+                                <b class="caret"></b>
+                            </span>
+                            </span>
+                            </a>
+                            <ul class="dropdown-menu animated fadeInRight m-t-xs profile-dropdown">
+                                <li><a href="#"><i class="fa fa-cogs"> </i><span> 个人信息</span></a></li>
+                                <li><a id="switch_user"><i class="fa fa-exchange"></i><span> 用户页面</span></a></li>
+                                <li><a href="login.html"><i class="fa fa-sign-out"></i> 注销登录</a></li>
+                            </ul>
+                         </li>
+                    </ul>
+
+                </nav>
+            </div>
+
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-10">
+                    <h2>仪表盘</h2>
+                </div>
+                <div class="col-lg-2">
+
+                </div>
+            </div>
+
+            <div class="wrapper wrapper-content animated fadeInRight">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox float-e-margins">
+                            <div class="ibox-title">
+                                <h5>
+                                    {% block title %}
+                                    {% endblock %}
+                                </h5>
+                                <div class="ibox-tools">
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                    <a class="dropdown-toggle"
+                                       data-toggle="dropdown"
+                                       href="table_data_tables.html#">
+                                        <i class="fa fa-wrench"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="ibox-content">
+                                {% block content %}
+                                {% endblock %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% include "footer.html" %}
         </div>
-    </nav>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category,message in messages %}
-                <div class="alert {{ category }}" role="alert">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-    {% block content %}
-
-    {% endblock %}
-</div>
-</div>
-
-
-{% block footer %}
-{#    {% include "footer.html" %}#}
-{% endblock %}
-
-
+    </div>
+    <script>
+        $(document).ready(function () {
+        })
+    </script>
 </body>
 
-<script type="text/javascript">
-    $(document).ready(function () {
-        $("#sidebar").mCustomScrollbar({
-            theme: "minimal"
-        });
-
-        $('#sidebarCollapse').on('click', function () {
-            $('#sidebar, #content').toggleClass('active');
-            $('.collapse.in').toggleClass('in');
-            $('a[aria-expanded=true]').attr('aria-expanded', 'false');
-        });
-    });
-</script>
-{% block custom_foot_js %} {% endblock %}
 </html>

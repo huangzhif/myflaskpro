@@ -10,4 +10,4 @@ bp_index = Blueprint('bp_index',__name__)
 @login_required
 def index():
     current_app.logger.info("index")
-    return render_template("base.html")
+    return render_template("index.html")
