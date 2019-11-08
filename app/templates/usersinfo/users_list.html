@@ -1,51 +1,49 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card">
-    <div class="card-body">
-        <div class="col-sm-1" style="padding-left: 0">
-            <a href="{{ url_for('bp_users.create_user') }}" class="btn btn-sm btn-info">创建用户</a>
-        </div>
-        <table class="table table-striped"
-               id="id_userslist">
-        </table>
+    <form id="userlist_form">
+    <div class="col-sm-1" style="padding-left: 0">
+        <a href="#" class="btn btn-sm btn-primary">创建用户</a>
     </div>
-</div>
-{% endblock %}
-{% block custom_foot_js %}
-    <script type="text/javascript">
-    var operateFormatter = function (value, row, index) {//赋予的参数
-        console.info(value,row,index);
-      return [
-          '<button class="btn btn-info btn-sm rightSize detailBtn" type="button">编辑</button>',
-          '<button class="btn btn-danger btn-sm rightSize packageBtn" type="button">删除</button>'
-      ].join(' ');
-  }
+        <div class="col-sm-7" style="padding-left: 0px"></div>
+        <div class="col-sm-4" style="padding-right: 0">
+            <div class="input-group inline-group">
+                <input type="text" class="form-control m-b input-sm"
+                       id="search_input" name="keyword"
+                       value="{{ pra_keyword }}" placeholder="Search">
+                <input type="text" style="display: none">
+                <div class="input-group-btn">
+                    <button id="search_btn" href="#" type="button"
+                            class="btn btn-sm btn-primary search-btn"
+                            onclick="change_info()">
+                        - 搜索 -
+                    </button>
+                </div>
+            </div>
+        </div>
+        <table class="table table-striped" id="editable">
+            <thead>
+            <tr class="text-center">
+                <th class="text-center">序号</th>
+                <th class="text-center">头像</th>
+                <th class="text-center">用户名</th>
+                <th class="text-center">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr class="gradeX">
+                <td class="text-center">{{ loop.index }}</td>
+                <td class="text-center"><img class="img-rounded" src="{{ user.avatar() }}"></td>
+                <td class="text-center">{{ user.username }}</td>
+                    <td class="text-center">
+                        <a href="#" class="btn btn-xs btn-info">更新</a>
+                        <a class="btn btn-xs btn-danger del">删除</a>
+                    </td>
+                </tr>
+            {% endfor %}
 
-        $("#id_userslist").bootstrapTable({
-            url: "{{ url_for('bp_users.get_users') }}",
-            pagination: true,
-            pageList: [10, 20],
-            search: true,
-            classes: "table table-hover",
-            columns: [{
-                field: 'idx',
-                title: '序号'
-            },
-                {
-                    field: 'username',
-                    title: '用户名'
-                },
-                {
-                    field: 'email',
-                    title: '邮箱'
-                },{
-                      field: 'operate',
-                      title: '操作',
-                      align: 'center',
-                      valign: 'middle',
-                      formatter: operateFormatter //自定义方法，添加操作按钮
-                  }]
-        })
-    </script>
+            </tbody>
+        </table>
+    </form>
 {% endblock %}

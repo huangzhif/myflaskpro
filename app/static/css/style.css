@@ -6306,7 +6306,7 @@ body.skin-3 {
   #page-wrapper {
     position: inherit;
     margin: 0 0 0 220px;
-    min-height: 1200px;
+    min-height: 100vh;
   }
   .navbar-static-side {
     z-index: 2001;

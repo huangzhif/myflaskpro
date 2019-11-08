@@ -11,7 +11,8 @@ bp_users = Blueprint("bp_users",__name__,url_prefix="/users")
 
 @bp_users.route("/users_list")
 def users_list():
-    return render_template("usersinfo/users_list.html")
+    users = User.query.order_by("username")
+    return render_template("usersinfo/users_list.html",users=users)
 
 
 @bp_users.route("/get_users")
@@ -33,8 +34,8 @@ def create_user():
     form = CreateUserForm()
     if form.validate_on_submit():
         user = User(username=form.username.data,email=form.email.data,is_active=form.is_active.data)
-        # password = PyCrypt.gen_rand_pass(16)
-        password = "123456"
+        password = PyCrypt.gen_rand_pass(16)
+        # password = "123456"
         # print(password)
         user.set_password(password)
         db.session.add(user)
@@ -43,6 +44,7 @@ def create_user():
             flash("Succeed","alert-info")
         except Exception as e:
             db.session.rollback()
+            current_app.logger.error(e)
             flash("fail","alert-danger")
 
     return render_template("usersinfo/create_user.html", form=form)

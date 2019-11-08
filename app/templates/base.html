@@ -30,14 +30,14 @@
                         </div>
                     </li>
 
-                    <li class="active">
+                    <li>
                         <a href="{{ url_for('bp_index.index') }}"><i class="fa fa-dashboard" style="width: 20px"></i> <span class="nav-label">仪表盘</span></a>
                     </li>
 
                     <li>
                         <a href="#"><i class="fa fa-group" style="width: 20px"></i> <span class="nav-label">用户管理</span> <span class="fa arrow"></span></a>
                         <ul class="nav nav-second-level">
-                            <li><a href="#">用户列表</a>
+                            <li><a href="{{ url_for('bp_users.users_list') }}">用户列表</a>
                             </li>
 {#                            <li><a href="#">用户组</a>#}
 {#                            </li>#}
@@ -158,6 +158,10 @@
     </div>
     <script>
         $(document).ready(function () {
+            $('#side-menu li a').each(function () {
+                if ($($(this))[0].href == String(window.location.href.split('?')[0]))
+                    $(this).addClass("active").parentsUntil($("#side-menu"), "li").addClass('active').parentsUntil($("#side-menu"), "ul").addClass("collapse in");
+            });
         })
     </script>
 </body>
