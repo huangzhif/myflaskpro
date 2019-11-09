@@ -1,49 +1,93 @@
 {% extends "base.html" %}
 
-{% block content %}
-    <form id="userlist_form">
-    <div class="col-sm-1" style="padding-left: 0">
-        <a href="#" class="btn btn-sm btn-primary">创建用户</a>
-    </div>
-        <div class="col-sm-7" style="padding-left: 0px"></div>
-        <div class="col-sm-4" style="padding-right: 0">
-            <div class="input-group inline-group">
-                <input type="text" class="form-control m-b input-sm"
-                       id="search_input" name="keyword"
-                       value="{{ pra_keyword }}" placeholder="Search">
-                <input type="text" style="display: none">
-                <div class="input-group-btn">
-                    <button id="search_btn" href="#" type="button"
-                            class="btn btn-sm btn-primary search-btn"
-                            onclick="change_info()">
-                        - 搜索 -
-                    </button>
-                </div>
-            </div>
-        </div>
-        <table class="table table-striped" id="editable">
-            <thead>
-            <tr class="text-center">
-                <th class="text-center">序号</th>
-                <th class="text-center">头像</th>
-                <th class="text-center">用户名</th>
-                <th class="text-center">操作</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for user in users %}
-                <tr class="gradeX">
-                <td class="text-center">{{ loop.index }}</td>
-                <td class="text-center"><img class="img-rounded" src="{{ user.avatar() }}"></td>
-                <td class="text-center">{{ user.username }}</td>
-                    <td class="text-center">
-                        <a href="#" class="btn btn-xs btn-info">更新</a>
-                        <a class="btn btn-xs btn-danger del">删除</a>
-                    </td>
-                </tr>
-            {% endfor %}
+{% block heading %}
+    用户列表
+{% endblock %}
 
-            </tbody>
-        </table>
-    </form>
+{% block content %}
+    <div id="toolbar" class="btn-group">
+        <a href="{{ url_for('bp_users.create_user') }}" class="btn btn-sm btn-info">
+            <i class="fa fa-plus fa-fw"></i>
+        </a>
+    </div>
+    <table class="table table-striped"
+           id="id_userslist">
+    </table>
+{% endblock %}
+
+{% block custom_foot_js %}
+    var operateFormatter = function (value, row, index) {//赋予的参数
+        return [
+            '<a href="#" id="edit" class="btn btn-sm btn-info"><i class="fa fa-pencil fa-fw"></i></a>',
+            '<a href="#" id="delete" class="btn btn-sm btn-danger"><i class="fa fa-trash-o fa-fw"></i></a>'
+            ].join(' ');
+    }
+
+    window.operateEvents = {
+            'click #edit': function (e, value, row, index) {
+{#                尴尬 ：jinja2 模板不能使用js变量？？？#}
+                window.location.href="/users/edit_user/"+ row.username;
+            },
+
+            'click #delete': function (e, value, row, index) {
+                swal({
+                    title: "Are you sure?",
+                    text: "一旦删除，数据将无法恢复！",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true,
+                })
+                    .then((willDelete) => {
+                        if (willDelete) {
+                            $.ajax({
+                                url: "{{ url_for('bp_users.del_user') }}",
+                                type: "POST",
+                                data: {"username": row.username},
+                                success: function (e) {
+                                    if (e['e']) {
+                                        swal("删除成功", {
+                                            icon: "success",
+                                        })
+                                        $("#id_userslist").bootstrapTable('refresh');
+                                    } else {
+
+                                    }
+                                },
+                            })
+                            {#            });#}
+                        } else {
+                            {#        swal("Your imaginary file is safe!");#}
+                        }
+                    });
+            }
+        }
+
+    $("#id_userslist").bootstrapTable({
+            url:"{{ url_for('bp_users.get_users') }}",
+            pagination:true,
+            pageList:[10,20],
+            toolbar:'#toolbar',
+            search:true,
+            classes:"table table-striped",
+            columns:[{
+                field:'idx',
+                title:'序号'
+                },
+                {
+                field:'username',
+                title:'用户'
+                },
+                {
+                field:'email',
+                title:'邮箱'
+                },{
+                      field: 'operate',
+                      title: '操作',
+                      align: 'center',
+                      valign: 'middle',
+                      events: operateEvents,
+                      formatter: operateFormatter //自定义方法，添加操作按钮
+                  }]
+         });
+
 {% endblock %}

@@ -118,11 +118,31 @@
 
             <div class="row wrapper border-bottom white-bg page-heading">
                 <div class="col-lg-10">
-                    <h2>仪表盘</h2>
+                    <h2>{% block heading %}仪表盘{% endblock %}</h2>
                 </div>
                 <div class="col-lg-2">
 
                 </div>
+            </div>
+
+            <div>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <ul class=flashes>
+                            {% for category, message in messages %}
+                                <div class="alert {{ category }} alert-dismissible"
+                                     role="alert">
+{#                                    <button type="button" class="close"#}
+{#                                            data-dismiss="alert"#}
+{#                                            aria-label="Close"><span#}
+{#                                            aria-hidden="true">&times;</span>#}
+{#                                    </button>#}
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
             </div>
 
             <div class="wrapper wrapper-content animated fadeInRight">
@@ -162,7 +182,17 @@
                 if ($($(this))[0].href == String(window.location.href.split('?')[0]))
                     $(this).addClass("active").parentsUntil($("#side-menu"), "li").addClass('active').parentsUntil($("#side-menu"), "ul").addClass("collapse in");
             });
+
+            window.setTimeout(function () {
+                $(".alert").fadeTo(1000, 0).slideUp(1000, function () {
+                    $(this).alert('close');
+                });
+            }, 5000);
         })
+
+
+        {% block custom_foot_js %}
+        {% endblock %}
     </script>
 </body>
 

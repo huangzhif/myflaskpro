@@ -1,21 +1,24 @@
-import json
-from app.models import db, User
-# from app.models import User
-from flask import Blueprint,render_template,flash,request,jsonify
-from app.forms.usersinfo import CreateUserForm
-from app.apis.api import PyCrypt
+import json,time
 
+from app.apis.api import PyCrypt
+from app.forms.usersinfo import CreateUserForm,EditUserForm
+from app.models import User, db
+# from app.models import User
+from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, url_for
+from flask_login import login_required
 
 bp_users = Blueprint("bp_users",__name__,url_prefix="/users")
 
 
 @bp_users.route("/users_list")
+@login_required
 def users_list():
     users = User.query.order_by("username")
     return render_template("usersinfo/users_list.html",users=users)
 
 
 @bp_users.route("/get_users")
+@login_required
 def get_users():
     _table = []
     users = User.query.order_by("username")
@@ -30,6 +33,7 @@ def get_users():
 
 
 @bp_users.route("/create_user", methods=["GET", "POST"])
+@login_required
 def create_user():
     form = CreateUserForm()
     if form.validate_on_submit():
@@ -41,10 +45,46 @@ def create_user():
         db.session.add(user)
         try:
             db.session.commit()
-            flash("Succeed","alert-info")
+            flash("添加成功", "alert-info")
+            return redirect(url_for('.users_list'))
         except Exception as e:
             db.session.rollback()
             current_app.logger.error(e)
-            flash("fail","alert-danger")
+            flash(e,"alert-danger")
 
     return render_template("usersinfo/create_user.html", form=form)
+
+
+@bp_users.route("/del_user", methods=["POST"])
+@login_required
+def del_user():
+    username = request.form.get("username", "")
+    user = User.query.filter_by(username=username).first()
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        e = True
+    return jsonify({"e": e, "msg": "succeed"})
+
+
+@bp_users.route("/edit_user/<username>",methods=["GET","POST"])
+@login_required
+def edit_user(username):
+    form = EditUserForm()
+
+    if form.validate_on_submit():
+        edit_user = User.query.filter_by(id=form.id.data).first()
+        edit_user.username = form.username.data
+        edit_user.email = form.email.data
+        edit_user.is_active = form.is_active.data
+        try:
+            db.session.commit()
+            flash("修改成功", "alert-info")
+            return redirect(url_for('.users_list'))
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(e)
+            flash(e, "alert-danger")
+
+    user = User.query.filter_by(username=username).first()
+    return render_template("usersinfo/edit_user.html",form=form,user=user)

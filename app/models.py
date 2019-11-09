@@ -12,12 +12,6 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     is_active = db.Column(db.Boolean)
 
-    """
-    有人问我为什么不在系统做个上传头像的功能：
-    有两个原因：
-    第一个是懒；
-    第二个是因为我喜欢直接拿别人的东西来用；
-    """
     def avatar(self, size=36):
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
         return 'https://www.gravatar.com/avatar/{}?d=identicon&s={}'.format(digest, size)
