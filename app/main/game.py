@@ -1,5 +1,5 @@
 from app.apis.api import PyCrypt
-from app.forms.game import AEGameForm,AEChannelForm
+from app.forms.game import AEGameForm,AEChannelForm,AEZoneForm
 from app.models import User, db, Games,Channels,Zones
 # from app.models import User
 from flask import Blueprint, current_app, flash, jsonify, redirect, \
@@ -160,3 +160,16 @@ def edit_channel(name):
             flash(e,"alert-danger")
 
     return render_template("game/ae_channel.html", form=form, title="编辑渠道")
+
+
+@bp_game.route("/zones_list",methods=["GET"])
+@login_required
+def zones_list():
+    return render_template("game/zones_list.html")
+
+
+@bp_game.route("/create_zone", methods=["GET", "POST"])
+@login_required
+def create_zone():
+    form = AEZoneForm()
+    return render_template("game/ae_zone.html", form=form, title="新增区服")

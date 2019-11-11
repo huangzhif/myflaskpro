@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block heading %}
+    区服列表
+{% endblock %}
+
+{% block content %}
+    <div id="toolbar" class="btn-group">
+        <a href="{{ url_for('bp_game.create_zone') }}" class="btn btn-sm btn-info">
+            <i class="fa fa-plus fa-fw"></i>
+        </a>
+    </div>
+    <table class="table table-striped"
+           id="id_zoneslist">
+    </table>
+{% endblock %}
+
+{% block custom_foot_js %}
+    var operateFormatter = function (value, row, index) {//赋予的参数
+        return [
+            '<a href="#" id="edit" class="btn btn-sm btn-info"><i class="fa fa-pencil fa-fw"></i></a>',
+            '<a href="#" id="delete" class="btn btn-sm btn-danger"><i class="fa fa-trash-o fa-fw"></i></a>'
+            ].join(' ');
+    }
+
+    window.operateEvents = {
+            'click #edit': function (e, value, row, index) {
+                window.location.href="#";
+            },
+
+            'click #delete': function (e, value, row, index) {
+                swal({
+                    title: "Are you sure?",
+                    text: "一旦删除，数据将无法恢复！",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true,
+                })
+                    .then((willDelete) => {
+                        if (willDelete) {
+                            $.ajax({
+                                url: "#",
+                                type: "POST",
+                                data: {},
+                                success: function (e) {
+                                    if (e['e']) {
+                                        swal("删除成功", {
+                                            icon: "success",
+                                        })
+                                        $("#id_zoneslist").bootstrapTable('refresh');
+                                    } else {
+
+                                    }
+                                },
+                            })
+                            {#            });#}
+                        } else {
+                            {#        swal("Your imaginary file is safe!");#}
+                        }
+                    });
+            }
+        }
+
+    $("#id_zoneslist").bootstrapTable({
+            url:"#",
+            pagination:true,
+            pageList:[10,20],
+            toolbar:'#toolbar',
+            search:true,
+            classes:"table table-striped",
+            columns:[{
+                field:'idx',
+                title:'序号'
+                },
+                {
+                field:'name',
+                title:'区服'
+                },{
+                      field: 'operate',
+                      title: '操作',
+                      align: 'center',
+                      valign: 'middle',
+                      events: operateEvents,
+                      formatter: operateFormatter //自定义方法，添加操作按钮
+                  }]
+         });
+
+{% endblock %}

@@ -80,21 +80,16 @@ class Zones(db.Model):
     """
     __tablename__ = "t_zones"
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(length=30))
+    zonenum = db.Column(db.String(length=30))
+    zonename = db.Column(db.String(length=30))
+    zoneip = db.Column(db.String(length=30))
+    dblink = db.Column(db.String(length=30))
+    dbport = db.Column(db.Integer)
+    db_A = db.Column(db.String(length=10))
+    db_B = db.Column(db.String(length=10))
+    db_C = db.Column(db.String(length=10))
 
-    channel_id = db.Column(db.Integer,db.ForeignKey('t_channels.id'))
+    channel_id = db.Column(db.Integer, db.ForeignKey('t_channels.id'))
 
     def __repr__(self):
-        return '<Zone {}>'.format(self.name)
-
-
-
-
-
-
-
-
-
-
-
-
+        return '<Zone {}>'.format(self.zonename)
