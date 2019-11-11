@@ -1,5 +1,5 @@
 from app.apis.api import PyCrypt
-from app.forms.game import CreateGameForm,EditGameForm,AEChannelForm
+from app.forms.game import AEGameForm,AEChannelForm
 from app.models import User, db, Games,Channels,Zones
 # from app.models import User
 from flask import Blueprint, current_app, flash, jsonify, redirect, \
@@ -33,9 +33,9 @@ def get_games():
 @bp_game.route("/create_game",methods=["GET","POST"])
 @login_required
 def create_game():
-    form = CreateGameForm()
+    form = AEGameForm()
     if form.validate_on_submit():
-        game = Games(name=form.game.data,
+        game = Games(name=form.name.data,
                      local_initshell_path=form.local_initshell_path.data,
                      remote_initshell_path=form.remote_initshell_path.data)
 
@@ -48,7 +48,7 @@ def create_game():
             db.session.rollback()
             current_app.logger.error(e)
             flash(e, "alert-danger")
-    return render_template("game/create_game.html", form=form)
+    return render_template("game/ae_game.html", form=form,title="新增游戏")
 
 
 @bp_game.route("/del_game",methods=["POST"])
@@ -66,11 +66,14 @@ def del_game():
 @bp_game.route("/edit_game/<name>", methods=["GET", "POST"])
 @login_required
 def edit_game(name):
-    form = EditGameForm()
-    if form.validate_on_submit():
-        edit_game = Games.query.get(form.id.data)
+    edit_game = Games.query.filter_by(name=name).first()
+    form = AEGameForm(id=edit_game.id,
+                      name=edit_game.name,
+                      local_initshell_path=edit_game.local_initshell_path,
+                      remote_initshell_path=edit_game.remote_initshell_path)
 
-        edit_game.name=form.game.data
+    if form.validate_on_submit():
+        edit_game.name=form.name.data
         edit_game.local_initshell_path = form.local_initshell_path.data
         edit_game.remote_initshell_path = form.remote_initshell_path.data
 
@@ -83,8 +86,7 @@ def edit_game(name):
             current_app.logger.error(e)
             flash(e, "alert-danger")
 
-    game = Games.query.filter_by(name=name).first()
-    return render_template("game/edit_game.html",form=form,game=game)
+    return render_template("game/ae_game.html",form=form,title="编辑游戏")
 
 
 @bp_game.route("/channels_list",methods=["GET"])
