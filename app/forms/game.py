@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField,SubmitField,HiddenField
+from wtforms import StringField,SubmitField,HiddenField,TextAreaField
 from wtforms.validators import DataRequired
 
 
@@ -34,3 +34,16 @@ class EditGameForm(FlaskForm):
                                                    "class": "form-control"})
 
     submit = SubmitField("Submit")
+
+
+class CreateChannelForm(FlaskForm):
+    name = StringField("渠道", validators=[DataRequired()],
+                       render_kw={"id": "id_name", "class": "form-control"})
+
+    remark = TextAreaField("备注",render_kw={"id":"id_remark","class":"form-control"})
+
+    submit = SubmitField("Submit")
+
+
+class EditChannelForm(CreateChannelForm):
+    id = HiddenField("id")
