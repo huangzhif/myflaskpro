@@ -8,7 +8,7 @@ from werkzeug.utils import import_string
 # from flask_migrate import Migrate
 # from flask_login import LoginManager
 from datetime import datetime,timedelta
-from app.models import User
+from app.models import User,Games,Channels,Zones
 from app.extensions import bootstrap,db,migrate,login_manager
 
 
@@ -43,7 +43,8 @@ def register_session_lifetime(app):
 def register_shell_context(app):
     @app.shell_context_processor
     def make_shell_context():
-        return dict(db=db, User=User)
+        return dict(db=db, User=User,
+                    Games=Games, Channels=Channels, Zones=Zones)
 
 
 def register_blueprint(app):

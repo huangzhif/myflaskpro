@@ -34,3 +34,67 @@ def load_user(id):
     :return:
     """
     return User.query.get(int(id))
+
+
+association_game_channel = db.Table('association_game_channel',
+                                    db.Column('game_id',db.Integer,db.ForeignKey('t_games.id')),
+                                    db.Column('channel_id',db.Integer,db.ForeignKey('t_channels.id')))
+
+
+class Games(db.Model):
+    """
+    游戏表
+    与区服表 为 一对多关系
+    与渠道表 为 多对多关系
+    """
+    __tablename__ = "t_games"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(length=50), unique=True)
+
+    local_initshell_path = db.Column(db.String(length=200))
+    remote_initshell_path = db.Column(db.String(length=200))
+
+    zones = db.relationship('Zones', backref='game', lazy="dynamic")
+
+    channels = db.relationship('Channels',secondary=association_game_channel, backref=db.backref("games"),lazy="dynamic")
+
+    def __repr__(self):
+        return '<Game {}>'.format(self.name)
+
+
+class Zones(db.Model):
+    """
+    区服表
+    """
+    __tablename__ = "t_zones"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(length=30))
+    game_id = db.Column(db.Integer, db.ForeignKey('t_games.id'))
+
+    def __repr__(self):
+        return '<Zone {}>'.format(self.name)
+
+
+class Channels(db.Model):
+    """
+    渠道表
+    """
+    __tablename__ = "t_channels"
+    id = db.Column(db.Integer,primary_key=True)
+    name = db.Column(db.String(length=30),unique=True)
+    remark = db.Column(db.Text(length=500))
+
+    def __repr__(self):
+        return '<Channel {}>'.format(self.name)
+
+
+
+
+
+
+
+
+
+
+
+
