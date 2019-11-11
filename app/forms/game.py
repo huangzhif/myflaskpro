@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField,SubmitField,HiddenField,TextAreaField
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired,Optional
 
 
 class CreateGameForm(FlaskForm):
@@ -20,7 +20,7 @@ class CreateGameForm(FlaskForm):
 
 
 class EditGameForm(FlaskForm):
-    id = HiddenField("id")
+    id = HiddenField("id",validators=[Optional()])
     game = StringField("游戏", validators=[DataRequired()])
     local_initshell_path = StringField("本地初始化脚本路径",
                                        validators=[DataRequired()],
@@ -36,14 +36,15 @@ class EditGameForm(FlaskForm):
     submit = SubmitField("Submit")
 
 
-class CreateChannelForm(FlaskForm):
+class AEChannelForm(FlaskForm):
+    """
+    新增/编辑 channel 表单
+    """
+    id = HiddenField("id", validators=[Optional()])
     name = StringField("渠道", validators=[DataRequired()],
                        render_kw={"id": "id_name", "class": "form-control"})
 
-    remark = TextAreaField("备注",render_kw={"id":"id_remark","class":"form-control"})
+    remark = TextAreaField("备注", render_kw={"id": "id_remark",
+                                            "class": "form-control"})
 
     submit = SubmitField("Submit")
-
-
-class EditChannelForm(CreateChannelForm):
-    id = HiddenField("id")

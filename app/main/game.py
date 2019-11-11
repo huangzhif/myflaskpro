@@ -1,5 +1,5 @@
 from app.apis.api import PyCrypt
-from app.forms.game import CreateGameForm,EditGameForm,CreateChannelForm,EditChannelForm
+from app.forms.game import CreateGameForm,EditGameForm,AEChannelForm
 from app.models import User, db, Games,Channels,Zones
 # from app.models import User
 from flask import Blueprint, current_app, flash, jsonify, redirect, \
@@ -111,7 +111,7 @@ def get_channels():
 @bp_game.route("/create_channel", methods=["GET", "POST"])
 @login_required
 def create_channel():
-    form = CreateChannelForm()
+    form = AEChannelForm()
     if form.validate_on_submit():
         channel = Channels(name=form.name.data,remark=form.remark.data)
         db.session.add(channel)
@@ -124,7 +124,7 @@ def create_channel():
             current_app.logger.error(e)
             flash(e, "alert-danger")
             
-    return render_template("game/create_channel.html", form=form)
+    return render_template("game/ae_channel.html", form=form,title="新增渠道")
 
 
 @bp_game.route("/del_channel", methods=["GET", "POST"])
@@ -143,7 +143,8 @@ def del_channel():
 @login_required
 def edit_channel(name):
     channel = Channels.query.filter_by(name=name).first()
-    form = EditChannelForm(remark=channel.remark)
+    form = AEChannelForm(id=channel.id, name=channel.name,
+                         remark=channel.remark)
 
     if form.validate_on_submit():
         channel.name = form.name.data
@@ -156,5 +157,4 @@ def edit_channel(name):
             db.session.rollback()
             flash(e,"alert-danger")
 
-    return render_template("game/edit_channel.html", form=form,
-                           channel=channel)
+    return render_template("game/ae_channel.html", form=form, title="编辑渠道")
