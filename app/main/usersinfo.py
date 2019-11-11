@@ -13,8 +13,8 @@ bp_users = Blueprint("bp_users",__name__,url_prefix="/users")
 @bp_users.route("/users_list")
 @login_required
 def users_list():
-    users = User.query.order_by("username")
-    return render_template("usersinfo/users_list.html",users=users)
+    # users = User.query.order_by("username")
+    return render_template("usersinfo/users_list.html")
 
 
 @bp_users.route("/get_users")
@@ -73,7 +73,7 @@ def edit_user(username):
     form = EditUserForm()
 
     if form.validate_on_submit():
-        edit_user = User.query.filter_by(id=form.id.data).first()
+        edit_user = User.query.get(form.id.data)
         edit_user.username = form.username.data
         edit_user.email = form.email.data
         edit_user.is_active = form.is_active.data

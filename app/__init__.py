@@ -53,7 +53,8 @@ def register_blueprint(app):
         "app.main.test:abc",
         "app.main.index:bp_index",
         "app.main.account:bp_account",
-        "app.main.usersinfo:bp_users"
+        "app.main.usersinfo:bp_users",
+        "app.main.game:bp_game"
     ]
     for bp_name in blueprints:
         bp = import_string(bp_name)

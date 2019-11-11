@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block heading %}
+    编辑游戏
+{% endblock %}
+
+{% block content %}
+    <form action="" method="post" class="form-horizontal">
+        {{ form.csrf_token() }}
+        {{ form.id(value=game.id) }}
+        <div class="form-group">
+            {{ form.game.label(for="id_game",class="col-sm-2 control-label") }}
+            <div class="col-sm-10">
+                {{ form.game(id="id_game",class="form-control",value=game.name) }}
+            </div>
+            <div class="col-sm-offset-2 col-sm-10">
+                {% for error in form.game.errors %}
+                    <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+            </div>
+
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label">初始化脚本</label>
+            <div class="col-sm-5">
+                {{ form.local_initshell_path(value=game.local_initshell_path) }}
+            </div>
+            <div class="col-sm-5">
+                {{ form.remote_initshell_path(value=game.remote_initshell_path) }}
+            </div>
+
+{#            <div class="col-sm-offset-2 col-sm-10">#}
+{#                {% for error in form.email.errors %}#}
+{#                    <span style="color: red;">[{{ error }}]</span>#}
+{#                {% endfor %}#}
+{#            </div>#}
+
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+               {{ form.submit(class="btn btn-info btn-md") }}
+            </div>
+        </div>
+
+    </form>
+{% endblock %}
