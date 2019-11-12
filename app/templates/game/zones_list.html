@@ -6,7 +6,7 @@
 
 {% block content %}
     <div id="toolbar" class="btn-group">
-        <a href="{{ url_for('bp_game.create_zone') }}" class="btn btn-sm btn-info">
+        <a href="{{ url_for('bp_game.create_zone') }}" class="btn btn-sm btn-info" title="新增">
             <i class="fa fa-plus fa-fw"></i>
         </a>
     </div>
@@ -18,14 +18,19 @@
 {% block custom_foot_js %}
     var operateFormatter = function (value, row, index) {//赋予的参数
         return [
-            '<a href="#" id="edit" class="btn btn-sm btn-info"><i class="fa fa-pencil fa-fw"></i></a>',
-            '<a href="#" id="delete" class="btn btn-sm btn-danger"><i class="fa fa-trash-o fa-fw"></i></a>'
+            '<a href="#" id="copy" class="btn btn-sm btn-success" title="拷贝"><i class="fa fa-copy fa-fw"></i></a>',
+            '<a href="#" id="edit" class="btn btn-sm btn-info" title="编辑"><i class="fa fa-pencil fa-fw"></i></a>',
+            '<a href="#" id="delete" class="btn btn-sm btn-danger" title="删除"><i class="fa fa-trash-o fa-fw"></i></a>'
             ].join(' ');
     }
 
     window.operateEvents = {
+            'click #copy': function (e,value,row,index){
+                window.location.href="/game/create_zone/" + row.zone_id;
+            },
+
             'click #edit': function (e, value, row, index) {
-                window.location.href="#";
+                window.location.href="/game/edit_zone/" + row.zone_id;
             },
 
             'click #delete': function (e, value, row, index) {

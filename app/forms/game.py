@@ -46,8 +46,8 @@ class AEZoneForm(FlaskForm):
 
     submit = SubmitField("Submit")
 
-    def __init__(self, *args):
-        super(AEZoneForm, self).__init__(*args)
+    def __init__(self, *args, **kwargs):
+        super(AEZoneForm, self).__init__(*args, **kwargs)
         """下拉框默认值初始化"""
         self.game.choices = [(game.id, game.name) for game in
                              Games.query.all()]

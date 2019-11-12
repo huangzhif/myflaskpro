@@ -184,10 +184,28 @@ def get_zonelist():
     return jsonify(_table)
 
 
-@bp_game.route("/create_zone", methods=["GET", "POST"])
+@bp_game.route("/create_zone/", methods=["GET", "POST"], defaults={"zone_id": ""})
+@bp_game.route("/create_zone/<zone_id>", methods=["GET", "POST"])
 @login_required
-def create_zone():
-    form = AEZoneForm()
+def create_zone(zone_id):
+    if zone_id:
+        """拷贝"""
+        title = "拷贝区服"
+        membership = Membership.query.filter_by(zone_id=zone_id).first()
+        zone = Zones.query.get(zone_id)
+        form = AEZoneForm(game=membership.game_id,
+                          channel=membership.channel_id,
+                          zonenum=zone.zonenum, zonename=zone.zonename,
+                          zoneip=zone.zoneip,
+                          dblink=zone.dblink, dbport=zone.dbport,
+                          db_A=zone.db_A,
+                          db_B=zone.db_B, db_C=zone.db_C)
+
+    else:
+        """新增"""
+        title = "新增区服"
+        form = AEZoneForm()
+
     if form.validate_on_submit():
         game = Games.query.get(form.game.data)
         channel = Channels.query.get(form.channel.data)
@@ -208,12 +226,12 @@ def create_zone():
             membership = Membership(game, channel, zones)
             db.session.add(membership)
             db.session.commit()
-            flash("编辑成功", "alert-info")
+            flash("操作成功", "alert-info")
             return redirect(url_for(".zones_list"))
         except Exception as e:
             db.session.rollback()
             flash(e, "alert-danger")
-    return render_template("createdit_module.html", form=form, title="新增区服")
+    return render_template("createdit_module.html", form=form, title=title)
 
 
 @bp_game.route("/del_zone", methods=["POST"])
@@ -228,3 +246,39 @@ def del_zone():
 
     db.session.commit()
     return jsonify({"e": True, "msg": "succeed"})
+
+
+@bp_game.route("/edit_zone/<int:zone_id>", methods=["GET", "POST"])
+@login_required
+def edit_zone(zone_id):
+    zid = zone_id
+    membership = Membership.query.filter_by(zone_id=zid).first()
+    zone = Zones.query.get(zid)
+    form = AEZoneForm(id=zid, game=membership.game_id,
+                      channel=membership.channel_id,
+                      zonenum=zone.zonenum, zonename=zone.zonename,
+                      zoneip=zone.zoneip,
+                      dblink=zone.dblink, dbport=zone.dbport, db_A=zone.db_A,
+                      db_B=zone.db_B, db_C=zone.db_C)
+
+    if form.validate_on_submit():
+        membership.game_id = form.game.data
+        membership.channel_id = form.channel.data
+        zone.zonenum = form.zonenum.data
+        zone.zonename = form.zonename.data
+        zone.zoneip = form.zoneip.data
+        zone.dblink = form.dblink.data
+        zone.dbport = form.dbport.data
+        zone.db_A = form.db_A.data
+        zone.db_B = form.db_B.data
+        zone.db_C = form.db_C.data
+        try:
+            db.session.commit()
+            flash("操作成功","alert-info")
+            return redirect(url_for('bp_game.zones_list'))
+        except Exception as e:
+            db.session.rollback()
+            flash(e,"alert-danger")
+
+    return render_template("createdit_module.html", form=form,title="编辑区服")
+
