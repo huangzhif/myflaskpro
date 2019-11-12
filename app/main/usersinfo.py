@@ -1,7 +1,7 @@
 import json,time
 
 from app.apis.api import PyCrypt
-from app.forms.usersinfo import CreateUserForm,EditUserForm
+from app.forms.usersinfo import AEUserForm
 from app.models import User, db
 # from app.models import User
 from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, url_for
@@ -35,7 +35,7 @@ def get_users():
 @bp_users.route("/create_user", methods=["GET", "POST"])
 @login_required
 def create_user():
-    form = CreateUserForm()
+    form = AEUserForm()
     if form.validate_on_submit():
         user = User(username=form.username.data,email=form.email.data,is_active=form.is_active.data)
         password = PyCrypt.gen_rand_pass(16)
@@ -52,7 +52,7 @@ def create_user():
             current_app.logger.error(e)
             flash(e,"alert-danger")
 
-    return render_template("usersinfo/create_user.html", form=form)
+    return render_template("createdit_module.html", form=form,title="新增用户")
 
 
 @bp_users.route("/del_user", methods=["POST"])
@@ -70,13 +70,13 @@ def del_user():
 @bp_users.route("/edit_user/<username>",methods=["GET","POST"])
 @login_required
 def edit_user(username):
-    form = EditUserForm()
+    user = User.query.filter_by(username=username).first()
+    form = AEUserForm(id=user.id,username=user.username,email=user.email,is_active=user.is_active)
 
     if form.validate_on_submit():
-        edit_user = User.query.get(form.id.data)
-        edit_user.username = form.username.data
-        edit_user.email = form.email.data
-        edit_user.is_active = form.is_active.data
+        user.username = form.username.data
+        user.email = form.email.data
+        user.is_active = form.is_active.data
         try:
             db.session.commit()
             flash("修改成功", "alert-info")
@@ -86,5 +86,4 @@ def edit_user(username):
             current_app.logger.error(e)
             flash(e, "alert-danger")
 
-    user = User.query.filter_by(username=username).first()
-    return render_template("usersinfo/edit_user.html",form=form,user=user)
+    return render_template("createdit_module.html",form=form,title="编辑用户")

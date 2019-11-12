@@ -48,7 +48,7 @@ def create_game():
             db.session.rollback()
             current_app.logger.error(e)
             flash(e, "alert-danger")
-    return render_template("game/ae_game.html", form=form,title="新增游戏")
+    return render_template("createdit_module.html", form=form,title="新增游戏")
 
 
 @bp_game.route("/del_game",methods=["POST"])
@@ -86,7 +86,7 @@ def edit_game(name):
             current_app.logger.error(e)
             flash(e, "alert-danger")
 
-    return render_template("game/ae_game.html",form=form,title="编辑游戏")
+    return render_template("createdit_module.html",form=form,title="编辑游戏")
 
 
 @bp_game.route("/channels_list",methods=["GET"])
@@ -126,7 +126,7 @@ def create_channel():
             current_app.logger.error(e)
             flash(e, "alert-danger")
             
-    return render_template("game/ae_channel.html", form=form,title="新增渠道")
+    return render_template("createdit_module.html", form=form,title="新增渠道")
 
 
 @bp_game.route("/del_channel", methods=["GET", "POST"])
@@ -159,7 +159,7 @@ def edit_channel(name):
             db.session.rollback()
             flash(e,"alert-danger")
 
-    return render_template("game/ae_channel.html", form=form, title="编辑渠道")
+    return render_template("createdit_module.html", form=form, title="编辑渠道")
 
 
 @bp_game.route("/zones_list",methods=["GET"])
@@ -172,4 +172,4 @@ def zones_list():
 @login_required
 def create_zone():
     form = AEZoneForm()
-    return render_template("game/ae_zone.html", form=form, title="新增区服")
+    return render_template("createdit_module.htmll", form=form, title="新增区服")
