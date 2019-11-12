@@ -1,18 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
+{% extends "bootstrap/base.html" %}
+{% block title %}运维管理系统{% endblock %}
 
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="renderer" content="webkit">
-
-    <title>运维管理系统</title>
+{% block metas %}
+    {{ super() }}
     <meta name="keywords" content="运维管理系统">
     <meta name="description" content="运维管理系统">
-    {% include "head_css_js.html" %}
+{% endblock %}
+{% block styles %}
+    {{ super() }}
+    {% include "head_css.html" %}
+{% endblock %}
 
-</head>
-
-<body>
+{% block body %}
     <div id="wrapper">
         <nav class="navbar-default navbar-static-side" role="navigation">
             <div class="sidebar-collapse">
@@ -20,7 +19,8 @@
                     <li class="nav-header">
 
                         <div class="profile-element" style="height: 100px">
-                            <div href="#" target="_blank" style="width: 100%;padding:20px;">
+                            <div href="#" target="_blank"
+                                 style="width: 100%;padding:20px;">
                                 <a class="navbar-brand" href="#">MyFlaskAPP</a>
                             </div>
                         </div>
@@ -31,78 +31,86 @@
                     </li>
 
                     <li>
-                        <a href="{{ url_for('bp_index.index') }}"><i class="fa fa-dashboard" style="width: 20px"></i> <span class="nav-label">仪表盘</span></a>
+                        <a href="{{ url_for('bp_index.index') }}"><i
+                                class="fa fa-dashboard"
+                                style="width: 20px"></i> <span
+                                class="nav-label">仪表盘</span></a>
                     </li>
 
                     <li>
-                        <a href="#"><i class="fa fa-group" style="width: 20px"></i> <span class="nav-label">用户管理</span> <span class="fa arrow"></span></a>
+                        <a href="#"><i class="fa fa-group"
+                                       style="width: 20px"></i> <span
+                                class="nav-label">用户管理</span> <span
+                                class="fa arrow"></span></a>
                         <ul class="nav nav-second-level">
                             <li><a href="{{ url_for('bp_users.users_list') }}">用户列表</a>
                             </li>
-{#                            <li><a href="#">用户组</a>#}
-{#                            </li>#}
-{#                            <li><a href="#">授权</a>#}
-{#                            </li>#}
+                            {#                            <li><a href="#">用户组</a>#}
+                            {#                            </li>#}
+                            {#                            <li><a href="#">授权</a>#}
+                            {#                            </li>#}
                         </ul>
                     </li>
                     <li>
-                    <a href="#"><i class="fa fa-gamepad" style="width: 20px"></i> <span
-                            class="nav-label">游戏模块</span><span class="fa arrow"></span></a>
-                    <ul class="nav nav-second-level">
-                        <li><a href="#">基础数据<span class="fa arrow"></span></a>
-                            <ul class="nav nav-third-level">
-                                <li>
-                                    <a href="{{ url_for('bp_game.games_list') }}">游戏列表</a>
-                                </li>
-                                <li>
-                                    <a href="{{ url_for('bp_game.channels_list') }}">渠道列表</a>
-                                </li>
-                                <li>
-                                    <a href="{{ url_for('bp_game.zones_list') }}">区服列表</a>
-                                </li>
-                            </ul>
-                        </li>
-{#                        <li><a href="#">服务初始化</a>#}
-{#                        </li>#}
-                    </ul>
-                </li>
+                        <a href="#"><i class="fa fa-gamepad"
+                                       style="width: 20px"></i> <span
+                                class="nav-label">游戏模块</span><span
+                                class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level">
+                            <li><a href="#">基础数据<span class="fa arrow"></span></a>
+                                <ul class="nav nav-third-level">
+                                    <li>
+                                        <a href="{{ url_for('bp_game.games_list') }}">游戏列表</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ url_for('bp_game.channels_list') }}">渠道列表</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ url_for('bp_game.zones_list') }}">区服列表</a>
+                                    </li>
+                                </ul>
+                            </li>
+                            {#                        <li><a href="#">服务初始化</a>#}
+                            {#                        </li>#}
+                        </ul>
+                    </li>
 
 
-{#                    <li>#}
-{#                        <a href="#"><i class="fa fa fa-inbox" style="width: 20px"></i> <span class="nav-label">资产管理</span><span class="fa arrow"></span></a>#}
-{#                        <ul class="nav nav-second-level">#}
-{#                            <li><a href="#">厂商信息<span class="fa arrow"></span></a>#}
-{#                                <ul class="nav nav-third-level">#}
-{#                                    <li><a href="#">阿里云</a></li>#}
-{#                                    <li><a href="#">AWS</a></li>#}
-{#                                    <li><a href="#">其它</a></li>#}
-{#                                </ul>#}
-{#                            </li>#}
-{#                            <li><a href="#">资产列表<span class="fa arrow"></span></a>#}
-{#                                <ul class="nav nav-third-level">#}
-{#                                    <li><a href="#">服务器</a></li>#}
-{#                                    <li><a href="#">数据库</a></li>#}
-{#                                    <li><a href="#">其它</a></li>#}
-{#                                </ul>#}
-{#                            </li>#}
-{#                        </ul>#}
-{#                    </li>#}
+                    {#                    <li>#}
+                    {#                        <a href="#"><i class="fa fa fa-inbox" style="width: 20px"></i> <span class="nav-label">资产管理</span><span class="fa arrow"></span></a>#}
+                    {#                        <ul class="nav nav-second-level">#}
+                    {#                            <li><a href="#">厂商信息<span class="fa arrow"></span></a>#}
+                    {#                                <ul class="nav nav-third-level">#}
+                    {#                                    <li><a href="#">阿里云</a></li>#}
+                    {#                                    <li><a href="#">AWS</a></li>#}
+                    {#                                    <li><a href="#">其它</a></li>#}
+                    {#                                </ul>#}
+                    {#                            </li>#}
+                    {#                            <li><a href="#">资产列表<span class="fa arrow"></span></a>#}
+                    {#                                <ul class="nav nav-third-level">#}
+                    {#                                    <li><a href="#">服务器</a></li>#}
+                    {#                                    <li><a href="#">数据库</a></li>#}
+                    {#                                    <li><a href="#">其它</a></li>#}
+                    {#                                </ul>#}
+                    {#                            </li>#}
+                    {#                        </ul>#}
+                    {#                    </li>#}
 
-{#                    <li>#}
-{#                        <a href="#"><i class="fa fa-hourglass-start" style="width: 20px"></i> <span class="nav-label">游戏任务</span><span class="fa arrow"></span></a>#}
-{#                        <ul class="nav nav-second-level">#}
-{#                            <li><a href="#">服务初始化</a>#}
-{#                            </li>#}
-{#                            <li><a href="#">开服</a>#}
-{#                            </li>#}
-{#                            <li><a href="#">更新</a>#}
-{#                            </li>#}
-{#                            <li><a href="#">关服/重启</a>#}
-{#                            </li>#}
-{#                            <li><a href="#">数据备份</a>#}
-{#                            </li>#}
-{#                        </ul>#}
-{#                    </li>#}
+                    {#                    <li>#}
+                    {#                        <a href="#"><i class="fa fa-hourglass-start" style="width: 20px"></i> <span class="nav-label">游戏任务</span><span class="fa arrow"></span></a>#}
+                    {#                        <ul class="nav nav-second-level">#}
+                    {#                            <li><a href="#">服务初始化</a>#}
+                    {#                            </li>#}
+                    {#                            <li><a href="#">开服</a>#}
+                    {#                            </li>#}
+                    {#                            <li><a href="#">更新</a>#}
+                    {#                            </li>#}
+                    {#                            <li><a href="#">关服/重启</a>#}
+                    {#                            </li>#}
+                    {#                            <li><a href="#">数据备份</a>#}
+                    {#                            </li>#}
+                    {#                        </ul>#}
+                    {#                    </li>#}
 
                 </ul>
             </div>
@@ -111,28 +119,39 @@
         <div id="page-wrapper" class="gray-bg dashbard-1">
 
             <div class="row border-bottom">
-                <nav class="navbar navbar-static-top" role="navigation" style="margin-bottom: 0">
+                <nav class="navbar navbar-static-top" role="navigation"
+                     style="margin-bottom: 0">
 
                     <div class="navbar-header">
-                        <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#"><i class="fa fa-bars"></i> </a>
+                        <a class="navbar-minimalize minimalize-styl-2 btn btn-primary "
+                           href="#"><i class="fa fa-bars"></i> </a>
                     </div>
 
                     <ul class="nav navbar-top-links navbar-right">
                         <li class="dropdown">
-                            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            <a data-toggle="dropdown" class="dropdown-toggle"
+                               href="#">
                             <span class="m-r-sm text-muted welcome-message">
-                            <img alt="image" class="img-circle" width="30" height="30" src="{{ current_user.avatar() }}">
+                            <img alt="image" class="img-circle" width="30"
+                                 height="30" src="{{ current_user.avatar() }}">
                             <span style="font-size: 13px;font-weight: 400"> {{ current_user.username }}
                                 <b class="caret"></b>
                             </span>
                             </span>
                             </a>
                             <ul class="dropdown-menu animated fadeInRight m-t-xs profile-dropdown">
-                                <li><a href="#"><i class="fa fa-cogs"> </i><span> 个人信息</span></a></li>
-                                <li><a id="switch_user"><i class="fa fa-exchange"></i><span> 用户页面</span></a></li>
-                                <li><a href="{{ url_for('bp_account.logout') }}"><i class="fa fa-sign-out"></i> 注销登录</a></li>
+                                <li><a href="#"><i
+                                        class="fa fa-cogs"> </i><span> 个人信息</span></a>
+                                </li>
+                                <li><a id="switch_user"><i
+                                        class="fa fa-exchange"></i><span> 用户页面</span></a>
+                                </li>
+                                <li>
+                                    <a href="{{ url_for('bp_account.logout') }}"><i
+                                            class="fa fa-sign-out"></i>
+                                        注销登录</a></li>
                             </ul>
-                         </li>
+                        </li>
                     </ul>
 
                 </nav>
@@ -154,11 +173,11 @@
                             {% for category, message in messages %}
                                 <div class="alert {{ category }} alert-dismissible"
                                      role="alert">
-{#                                    <button type="button" class="close"#}
-{#                                            data-dismiss="alert"#}
-{#                                            aria-label="Close"><span#}
-{#                                            aria-hidden="true">&times;</span>#}
-{#                                    </button>#}
+                                    {#                                    <button type="button" class="close"#}
+                                    {#                                            data-dismiss="alert"#}
+                                    {#                                            aria-label="Close"><span#}
+                                    {#                                            aria-hidden="true">&times;</span>#}
+                                    {#                                    </button>#}
                                     {{ message }}
                                 </div>
                             {% endfor %}
@@ -173,7 +192,7 @@
                         <div class="ibox float-e-margins">
                             <div class="ibox-title">
                                 <h5>
-                                    {% block title %}
+                                    {% block subtitle %}
                                     {% endblock %}
                                 </h5>
                                 <div class="ibox-tools">
@@ -195,27 +214,33 @@
                     </div>
                 </div>
             </div>
-        {% include "footer.html" %}
+            {% include "footer.html" %}
         </div>
     </div>
-    <script>
-        $(document).ready(function () {
-            $('#side-menu li a').each(function () {
-                if ($($(this))[0].href == String(window.location.href.split('?')[0]))
-                    $(this).addClass("active").parentsUntil($("#side-menu"), "li").addClass('active').parentsUntil($("#side-menu"), "ul").addClass("collapse in");
-            });
-
-            window.setTimeout(function () {
-                $(".alert").fadeTo(1000, 0).slideUp(1000, function () {
-                    $(this).alert('close');
+    {% block scripts %}
+        {{ super() }}
+        {% include "foot_js.html" %}
+        <script>
+            $(document).ready(function () {
+                $('#side-menu li a').each(function () {
+                    if ($($(this))[0].href == String(window.location.href.split('?')[0]))
+                        $(this).addClass("active").parentsUntil($("#side-menu"), "li").addClass('active').parentsUntil($("#side-menu"), "ul").addClass("collapse in");
                 });
-            }, 5000);
-        })
+
+                window.setTimeout(function () {
+                    $(".alert").fadeTo(1000, 0).slideUp(1000, function () {
+                        $(this).alert('close');
+                    });
+                }, 5000);
+            })
 
 
-        {% block custom_foot_js %}
-        {% endblock %}
-    </script>
-</body>
+            {% block custom_foot_js %}
+            {% endblock %}
+        </script>
+    {% endblock %}
+{% endblock %}
 
-</html>
+
+
+
