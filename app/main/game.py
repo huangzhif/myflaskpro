@@ -1,6 +1,6 @@
 from app.apis.api import PyCrypt
 from app.forms.game import AEGameForm,AEChannelForm,AEZoneForm
-from app.models import User, db, Games,Channels,Zones
+from app.models import User, db, Games,Channels,Zones,Membership
 # from app.models import User
 from flask import Blueprint, current_app, flash, jsonify, redirect, \
     render_template, request, url_for
@@ -168,8 +168,63 @@ def zones_list():
     return render_template("game/zones_list.html")
 
 
+@bp_game.route("/get_zonelist",methods=["GET"])
+def get_zonelist():
+    _table = []
+    memberships = Membership.query.all()
+    for idx,ms in enumerate(memberships,1):
+        tmp = {}
+        tmp["idx"] = idx
+        tmp["zone_id"] = ms.zone_id
+        tmp["game"] = Games.query.get(ms.game_id).name
+        tmp["channel"] = Channels.query.get(ms.channel_id).name
+        tmp["zonename"] = Zones.query.get(ms.zone_id).zonename
+        _table.append(tmp)
+
+    return jsonify(_table)
+
+
 @bp_game.route("/create_zone", methods=["GET", "POST"])
 @login_required
 def create_zone():
     form = AEZoneForm()
-    return render_template("createdit_module.htmll", form=form, title="新增区服")
+    if form.validate_on_submit():
+        game = Games.query.get(form.game.data)
+        channel = Channels.query.get(form.channel.data)
+        zones = Zones(zonenum=form.zonenum.data,
+                      zonename=form.zonename.data,
+                      zoneip=form.zoneip.data,
+                      dblink=form.dblink.data,
+                      dbport=form.dbport.data,
+                      db_A=form.db_A.data,
+                      db_B=form.db_B.data,
+                      db_C=form.db_C.data)
+
+        try:
+            # 先保存区服对象
+            db.session.add(zones)
+            db.session.commit()
+
+            membership = Membership(game, channel, zones)
+            db.session.add(membership)
+            db.session.commit()
+            flash("编辑成功", "alert-info")
+            return redirect(url_for(".zones_list"))
+        except Exception as e:
+            db.session.rollback()
+            flash(e, "alert-danger")
+    return render_template("createdit_module.html", form=form, title="新增区服")
+
+
+@bp_game.route("/del_zone", methods=["POST"])
+@login_required
+def del_zone():
+    zone_id = request.form.get("zone_id", "")
+    membership = Membership.query.filter_by(zone_id=zone_id).first()
+    zone = Zones.query.get(zone_id)
+    # 以下删除顺序 需要先删除关系表，在删除zone 表数据
+    db.session.delete(zone)
+    db.session.delete(membership)
+
+    db.session.commit()
+    return jsonify({"e": True, "msg": "succeed"})

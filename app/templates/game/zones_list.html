@@ -39,9 +39,9 @@
                     .then((willDelete) => {
                         if (willDelete) {
                             $.ajax({
-                                url: "#",
+                                url: "{{ url_for('bp_game.del_zone') }}",
                                 type: "POST",
-                                data: {},
+                                data: {"zone_id":row.zone_id},
                                 success: function (e) {
                                     if (e['e']) {
                                         swal("删除成功", {
@@ -62,7 +62,7 @@
         }
 
     $("#id_zoneslist").bootstrapTable({
-            url:"#",
+            url:"{{ url_for('bp_game.get_zonelist') }}",
             pagination:true,
             pageList:[10,20],
             toolbar:'#toolbar',
@@ -73,7 +73,19 @@
                 title:'序号'
                 },
                 {
-                field:'name',
+                 field:'zone_id',
+                 title:'zone_id',
+                 hidden:true,
+                 },
+                {
+                field:'game',
+                title:'游戏'
+                },{
+                field:'channel',
+                title:'渠道'
+                },
+                {
+                field:'zonename',
                 title:'区服'
                 },{
                       field: 'operate',
@@ -84,5 +96,6 @@
                       formatter: operateFormatter //自定义方法，添加操作按钮
                   }]
          });
+    $('#id_zoneslist').bootstrapTable('hideColumn','zone_id');
 
 {% endblock %}

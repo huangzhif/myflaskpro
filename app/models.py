@@ -36,9 +36,33 @@ def load_user(id):
     return User.query.get(int(id))
 
 
-association_game_channel = db.Table('association_game_channel',
-                                    db.Column('game_id',db.Integer,db.ForeignKey('t_games.id')),
-                                    db.Column('channel_id',db.Integer,db.ForeignKey('t_channels.id')))
+# 关联表与区服表是
+# association_game_channel = db.Table('association_game_channel',
+#                                     db.Column('game_id',db.Integer,db.ForeignKey('t_games.id')),
+#                                     db.Column('channel_id',db.Integer,db.ForeignKey('t_channels.id')))
+
+class Membership(db.Model):
+    """
+    整个表可以认为zone_id 就是主键，因为逻辑是先保存zone表数据，才有zone_id,
+    所有数据zone_id绝对不会有重复值，
+    所以在删除的时候，需要以zone_id 查询，先删除该表数据，再删除zone表数据。
+    """
+    game_id = db.Column(db.Integer, db.ForeignKey('t_games.id'), primary_key=True)
+    channel_id = db.Column(db.Integer, db.ForeignKey('t_channels.id'), primary_key=True)
+    zone_id = db.Column(db.Integer, db.ForeignKey("t_zones.id"), primary_key=True)
+
+    db.UniqueConstraint('game_id','channel_id','zone_id')
+    db.relationship('Games',uselist=False,backref='memberships',lazy='dynamic')
+    db.relationship('Channels',uselist=False,backref='memberships',lazy='dynamic')
+    db.relationship('Zones',uselist=False,backref='memberships',lazy='dynamic')
+
+    def __init__(self,game,channel,zone):
+        self.game_id = game.id
+        self.channel_id = channel.id
+        self.zone_id = zone.id
+
+    def __repr__(self):
+        return "<Membership %s, %s, %s>" % (self.game_id,self.channel_id,self.zone_id)
 
 
 class Games(db.Model):
@@ -53,7 +77,7 @@ class Games(db.Model):
     local_initshell_path = db.Column(db.String(length=200))
     remote_initshell_path = db.Column(db.String(length=200))
 
-    channels = db.relationship('Channels',secondary=association_game_channel, backref=db.backref("games"),lazy="dynamic")
+    # channels = db.relationship('Channels',secondary=association_game_channel, backref=db.backref("games"),lazy="dynamic")
 
     def __repr__(self):
         return '<Game {}>'.format(self.name)
@@ -62,13 +86,12 @@ class Games(db.Model):
 class Channels(db.Model):
     """
     渠道表
-    与区服表为 一对多关系
     """
     __tablename__ = "t_channels"
     id = db.Column(db.Integer,primary_key=True)
     name = db.Column(db.String(length=30),unique=True)
     remark = db.Column(db.Text(length=500))
-    zones = db.relationship("Zones", backref='channel', lazy="dynamic")
+    # zones = db.relationship("Zones", backref='channel', lazy="dynamic")
 
     def __repr__(self):
         return '<Channel {}>'.format(self.name)
@@ -89,7 +112,7 @@ class Zones(db.Model):
     db_B = db.Column(db.String(length=10))
     db_C = db.Column(db.String(length=10))
 
-    channel_id = db.Column(db.Integer, db.ForeignKey('t_channels.id'))
+    # channel_id = db.Column(db.Integer, db.ForeignKey('t_channels.id'))
 
     def __repr__(self):
         return '<Zone {}>'.format(self.zonename)
