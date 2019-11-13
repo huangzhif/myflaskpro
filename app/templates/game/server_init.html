@@ -79,21 +79,48 @@
     }
 
     function Execute(){
+        var csrftoken = $('meta[name=csrf-token]').attr('content');
+
         if (!$("#id_game").val() || !$("#id_shell").val() || !$("#id_iplist").val()){
             swal({
               title: "必填项不能为空！",
                allowOutsideClick:true,
-            text: "2秒后自动关闭。",
+            text: "2秒后自动关闭.",
               timer: 2000,
 {#              buttons: false#}
             });
             return false;
         }
-        run_waitMe($('.wrapper-content'), 1, 'progressBar');
 
-        setTimeout(function(){
-            $('.wrapper-content').waitMe('hide');
-        }, 5000);
+        $.ajax({
+                url: "{{ url_for('bp_game.server_init') }}",
+                type: "POST",
+                traditional: true,
+                dataType:"json",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    "gameid": $("#id_game").val(),
+                    "file_name":$("#id_shell").val(),
+                    "iplists":$("#id_iplist").val(),
+                }),
+                beforeSend: function (xhr,settings) {
+                    $("#publishlog").val("");
+                    run_waitMe($('.wrapper-content'), 1, 'progressBar');
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                        }
+                },
+                success: function (e) {
+                    if (e['status']) {
+                        $("#publishlog").val(e['msg']);
+                    }
+                    else {
+                    }
+                },
+                complete: function () {
+                    $('.wrapper-content').waitMe('hide');
+                }
+            })
 
         return false;
     }

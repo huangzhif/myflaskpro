@@ -1,4 +1,4 @@
-import os
+import os,time
 from app.apis.api import PyCrypt
 from app.forms.game import AEGameForm,AEChannelForm,AEZoneForm
 from app.models import User, db, Games,Channels,Zones,Membership
@@ -287,8 +287,14 @@ def edit_zone(zone_id):
 @bp_game.route("/server_init",methods=["GET","POST"])
 @login_required
 def server_init():
-    games = Games.query.order_by("name")
-    return render_template("game/server_init.html",games=games,title="服务初始化")
+    if request.method == "GET":
+        games = Games.query.order_by("name")
+        return render_template("game/server_init.html",games=games,title="服务初始化")
+
+    else:
+        print(request.get_json())
+        time.sleep(5)
+        return jsonify({"status":True,"msg":"succeed"})
 
 
 @bp_game.route("/get_initshell/<gameid>",methods=["GET"])

@@ -5,6 +5,7 @@
     {{ super() }}
     <meta name="keywords" content="运维管理系统">
     <meta name="description" content="运维管理系统">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 {% endblock %}
 {% block styles %}
     {{ super() }}
