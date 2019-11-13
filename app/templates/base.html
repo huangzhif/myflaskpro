@@ -70,7 +70,7 @@
                                     </li>
                                 </ul>
                             </li>
-                            <li><a href="#">服务初始化</a>
+                            <li><a href="{{ url_for('bp_game.server_init') }}">服务初始化</a>
                             </li>
                         </ul>
                     </li>
@@ -233,7 +233,6 @@
                     });
                 }, 5000);
             })
-
 
             {% block custom_foot_js %}
             {% endblock %}

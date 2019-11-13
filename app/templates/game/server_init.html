@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block heading %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+    <div class="col-md-9">
+        <form action="" method="post" class="form form-horizontal">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div class="form-group">
+                <label class="control-label col-lg-2" for="game"><span style="color: red">* </span>游戏</label>
+                <div class="col-lg-10">
+                    <select class="form-control" id="id_game" name="game" onchange="selectGame()">
+                        <option value=""></option>
+                        {% for game in games %}
+                            <option value={{ game.id }}>{{ game.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-lg-2" for="shell"><span style="color: red">* </span>脚本</label>
+                <div class="col-lg-10">
+                    <select class="form-control" id="id_shell" name="shell">
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-lg-2" for="iplist"><span style="color: red">* </span>IP列表</label>
+                <div class="col-lg-10">
+                    <input placeholder="多个IP以英文逗号区分" id="id_iplist" required class="form-control" name="iplist">
+                    </input>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-offset-2 col-lg-10">
+                    <a href="#" onclick="Execute()" class="btn btn-sm btn-info" id="submit" name="submit" type="submit">Execute</a>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-lg-2" for="publishlog">执行信息</label>
+                <div class="col-lg-offset-2 col-lg-10">
+                <textarea id="publishlog" name="publishlog" rows="20" wrap="hard" readonly="readonly">
+
+                </textarea>
+                </div>
+            </div>
+        </form>
+
+    </div>
+    <div class="col-md-3">
+
+    </div>
+    </div>
+
+{% endblock %}
+
+{% block custom_foot_js %}
+    function selectGame() {
+        var gameid;
+        var game = document.getElementById("id_game");
+        $("#id_shell").html("");
+        for (i = 0; i < game.length; i++) {
+            if (game[i].selected == true) {
+                gameid = game[i].value;
+                $.getJSON("/game/get_initshell/" + gameid,function(data){
+                    var versionstring = "<option value=''></option>";
+                    $.each(data, function (i, item) {
+                    versionstring += "<option value=\"" + item + "\">" + item + "</option>";
+                    });
+
+                    $("#id_shell").html(versionstring);
+                })
+            }
+        }
+    }
+
+    function Execute(){
+        if (!$("#id_game").val() || !$("#id_shell").val() || !$("#id_iplist").val()){
+            swal({
+              title: "必填项不能为空！",
+               allowOutsideClick:true,
+            text: "2秒后自动关闭。",
+              timer: 2000,
+{#              buttons: false#}
+            });
+            return false;
+        }
+        run_waitMe($('.wrapper-content'), 1, 'progressBar');
+
+        setTimeout(function(){
+            $('.wrapper-content').waitMe('hide');
+        }, 5000);
+
+        return false;
+    }
+{% endblock %}

@@ -1,3 +1,4 @@
+import os
 from app.apis.api import PyCrypt
 from app.forms.game import AEGameForm,AEChannelForm,AEZoneForm
 from app.models import User, db, Games,Channels,Zones,Membership
@@ -282,3 +283,26 @@ def edit_zone(zone_id):
 
     return render_template("createdit_module.html", form=form,title="编辑区服")
 
+
+@bp_game.route("/server_init",methods=["GET","POST"])
+@login_required
+def server_init():
+    games = Games.query.order_by("name")
+    return render_template("game/server_init.html",games=games,title="服务初始化")
+
+
+@bp_game.route("/get_initshell/<gameid>",methods=["GET"])
+@login_required
+def get_initshell(gameid):
+    files = []
+    game = Games.query.get(gameid)
+    try:
+        dirs = os.listdir(game.local_initshell_path)
+        for file in dirs:
+            if os.path.splitext(file)[-1] == ".sh":
+                files.append(file)
+
+    except Exception as e:
+        current_app.logger.error(e)
+
+    return jsonify(files)

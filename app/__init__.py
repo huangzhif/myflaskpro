@@ -9,7 +9,7 @@ from werkzeug.utils import import_string
 # from flask_login import LoginManager
 from datetime import datetime,timedelta
 from app.models import User,Games,Channels,Zones,Membership
-from app.extensions import bootstrap,db,migrate,login_manager
+from app.extensions import bootstrap,db,migrate,login_manager,csrf
 
 
 basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -71,6 +71,7 @@ def register_extensions(app):
     db.init_app(app)
     migrate.init_app(app,db)
     login_manager.init_app(app)
+    csrf.init_app(app)
 
 
 def register_logging(app):

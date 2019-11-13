@@ -53,3 +53,18 @@ class AEZoneForm(FlaskForm):
                              Games.query.all()]
         self.channel.choices = [(channel.id, channel.name) for channel in
                                 Channels.query.all()]
+
+
+# class ServerInitForm(FlaskForm):
+#     """服务初始化表单"""
+#     game = SelectField("游戏", coerce=int)
+#     initshell = SelectField("脚本",coerce=int, choices=[])
+#     iplist = StringField("IP列表",validators=[DataRequired()],render_kw={"place_holder":"多个IP以英文逗号隔开"})
+#
+#     submit = SubmitField("Execute")
+#
+#     def __init__(self, *args, **kwargs):
+#         super(ServerInitForm, self).__init__(*args, **kwargs)
+#         """下拉框默认值初始化"""
+#         self.game.choices = [(game.id, game.name) for game in
+#                              Games.query.all()]

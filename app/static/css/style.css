@@ -6413,3 +6413,10 @@ body.skin-3 {
 .echarts {
     height: 240px;
 }
+
+#publishlog {
+    background-color: #000000;
+    color: #00CD66;
+    height: 100%;
+    width: 100%;
+}
