@@ -17,16 +17,20 @@
 {% endblock %}
 
 {% block custom_foot_js %}
-    editor = CodeMirror.fromTextArea(document.getElementById("publishlog"), {
-            lineNumbers: true,     // 显示行数
-            indentUnit: 4,         // 缩进单位为4
-            styleActiveLine: true, // 当前行背景高亮
-            matchBrackets: true,   // 括号匹配
-            mode: 'shell',     // HMTL混合模式
-            lineWrapping: true,    // 自动换行
-            theme: 'erlang-dark',      // 使用monokai模版
-            autoRefresh: true,
-        });
+    <script>
+    var csrftoken = $('meta[name=csrf-token]').attr('content');
+
+    window.sessionStorage.clear();
+     editor = CodeMirror.fromTextArea(document.getElementById("publishlog"), {
+        lineNumbers: true,     // 显示行数
+        indentUnit: 4,         // 缩进单位为4
+        styleActiveLine: true, // 当前行背景高亮
+        matchBrackets: true,   // 括号匹配
+        mode: 'shell',     // HMTL混合模式
+        lineWrapping: true,    // 自动换行
+        theme: 'erlang-dark',      // 使用monokai模版
+        autoRefresh: true,
+    });
 
     var operateFormatter = function (value, row, index) {//赋予的参数
         return [
@@ -36,7 +40,7 @@
     }
 
     var opsevishellFormatter = function(value,row,index) {
-        return '<a href="#" id="editopenshell" class="btn btn-sm btn-info" title="编辑"><i class="fa fa-pencil fa-fw"></i></a>'
+        return '<a href="#" id="openshell" class="btn btn-sm btn-info editshell" title="Edit"><i class="fa fa-pencil fa-fw"></i></a>'
     }
 
     window.operateEvents = {
@@ -44,12 +48,54 @@
                 window.location.href="/game/edit_game/" + row.name;
             },
 
-            'click #editopenshell':function(e,value,row,index){
+            'click .editshell':function(e,value,row,index){
+                sessionStorage.setItem('game',row.name);
+                sessionStorage.setItem("type",e.currentTarget.id);
+
                 var dialog = $('#exampleModal').modal({
                     backdrop: 'static',
                     keyboard: true
                 });
                 dialog.modal('show');
+
+                $.ajax({
+                    url:"{{ url_for('bp_game.get_script') }}",
+                    type:"POST",
+                    dataType:"json",
+                    contentType:"application/json", //////不加后台会接收不了数据
+                    data:JSON.stringify({'game':row.name,'type':e.currentTarget.id}),
+                    beforeSend: function (xhr,settings) {
+                        if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+                                xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                            }
+                },
+                success: function (e) {
+                    if (e['status']) {
+                        $("#publishlog").val(e["msg"]);
+                        $('.CodeMirror').remove();
+
+                        var myTextarea = document.getElementById("publishlog");
+                        var CodeMirrorEditor = CodeMirror.fromTextArea(myTextarea, {
+                            lineNumbers: true,     // 显示行数
+                            indentUnit: 4,         // 缩进单位为4
+                            styleActiveLine: true, // 当前行背景高亮
+                            matchBrackets: true,   // 括号匹配
+                            mode: 'shell',     // HMTL混合模式
+                            lineWrapping: true,    // 自动换行
+                            theme: 'erlang-dark',      // 使用monokai模版
+                            autoRefresh: true,
+                        });
+                        CodeMirrorEditor.on("change", function (instance, changeObj) {
+                            CodeMirrorEditor.save();
+                        });
+
+                    }
+                    else {
+                    }
+                },
+                complete: function () {
+                }
+                })
             },
 
             'click #delete': function (e, value, row, index) {
@@ -118,4 +164,32 @@
                   }]
          });
 
+    function savecontent(){
+        var scriptcontent = $('#publishlog').val();
+        $("#exampleModal").modal("hide");
+
+        $.ajax({
+            url: "{{ url_for('bp_game.savecontent') }}",
+            type: "POST",
+            dataType:'json',
+            contentType:"application/json",
+            data: JSON.stringify({"content":scriptcontent,"game":sessionStorage.getItem('game'),"type":sessionStorage.getItem('type')}),
+            beforeSend: function (xhr,settings) {
+                        if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+                                xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                            }
+                },
+            success: function (e) {
+                if (e['status']) {
+                    {#layer.msg("保存成功! ", {time: 1000}, function () {#}
+                        {#location.href = "{% url 'serviceapp:service_overview' %}";#}
+                }
+                else {
+                }
+            },
+            complete: function () {
+            }
+        })
+    }
+</script>
 {% endblock %}

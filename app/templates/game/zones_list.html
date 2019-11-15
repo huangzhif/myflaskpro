@@ -16,6 +16,7 @@
 {% endblock %}
 
 {% block custom_foot_js %}
+    <script>
     var operateFormatter = function (value, row, index) {//赋予的参数
         return [
             '<a href="#" id="copy" class="btn btn-sm btn-success" title="拷贝"><i class="fa fa-copy fa-fw"></i></a>',
@@ -102,5 +103,5 @@
                   }]
          });
     $('#id_zoneslist').bootstrapTable('hideColumn','zone_id');
-
+</script>
 {% endblock %}

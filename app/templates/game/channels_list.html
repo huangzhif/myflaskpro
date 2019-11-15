@@ -16,6 +16,7 @@
 {% endblock %}
 
 {% block custom_foot_js %}
+    <script>
     var operateFormatter = function (value, row, index) {//赋予的参数
         return [
             '<a href="#" id="edit" class="btn btn-sm btn-info" title="编辑"><i class="fa fa-pencil fa-fw"></i></a>',
@@ -84,5 +85,5 @@
                       formatter: operateFormatter //自定义方法，添加操作按钮
                   }]
          });
-
+</script>
 {% endblock %}

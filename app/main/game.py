@@ -3,6 +3,7 @@ import multiprocessing
 import os
 import time
 import subprocess
+from slugify import slugify
 
 from app.forms.game import AEChannelForm, AEGameForm, AEZoneForm
 from app.models import Channels, Games, Membership, User, Zones, db
@@ -10,6 +11,7 @@ from app.models import Channels, Games, Membership, User, Zones, db
 from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import login_required
 from app.util import myssh,bash
+from app import basedir
 
 bp_game = Blueprint("bp_game", __name__, url_prefix="/game")
 
@@ -407,3 +409,57 @@ def get_initshell(gameid):
         files = [file for file in dirs if os.path.splitext(file)[-1] == ".sh"]
 
     return jsonify(files)
+
+
+@bp_game.route("/get_script",methods=["POST"])
+@login_required
+def get_script():
+    """
+    游戏列表点击脚本编辑按钮弹出对应游戏对应功能的shell脚本
+    :return:
+    """
+    game = request.json["game"]
+    type = request.json["type"]
+
+    filename = slugify(game, to_lower=True, separator="") + '.sh'
+
+    """脚本文件夹路径"""
+    thispath = os.path.join(basedir,"scripts",type)
+
+    if not os.path.exists(thispath):
+        os.makedirs(thispath)
+
+    """脚本绝对路径"""
+    scriptap = os.path.join(thispath,filename)
+
+    if not (os.path.exists(scriptap) and os.path.isfile(scriptap)):
+        with open(scriptap,"w") as w:
+            w.write('#!/bin/bash')
+
+    with open(scriptap,'r') as r:
+        data = r.read()
+    return jsonify({"status": True, "msg": data})
+
+
+@bp_game.route("/savecontent",methods=["POST"])
+@login_required
+def savecontent():
+    content = request.json["content"]
+    game = request.json["game"]
+    type = request.json["type"]
+
+    filename = slugify(game, to_lower=True, separator="") + '.sh'
+
+    """脚本文件夹路径"""
+    thispath = os.path.join(basedir, "scripts", type)
+
+    if not os.path.exists(thispath):
+        os.makedirs(thispath)
+
+    """脚本绝对路径"""
+    scriptap = os.path.join(thispath, filename)
+
+    with open(scriptap,'w') as f:
+        f.write(content)
+
+    return jsonify({"status":True})
