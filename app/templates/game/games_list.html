@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block content %}
+    {% include "scriptModal.html" %}
     <div id="toolbar" class="btn-group">
         <a href="{{ url_for('bp_game.create_game') }}" class="btn btn-sm btn-info" title="新增">
             <i class="fa fa-plus fa-fw"></i>
@@ -16,6 +17,17 @@
 {% endblock %}
 
 {% block custom_foot_js %}
+    editor = CodeMirror.fromTextArea(document.getElementById("publishlog"), {
+            lineNumbers: true,     // 显示行数
+            indentUnit: 4,         // 缩进单位为4
+            styleActiveLine: true, // 当前行背景高亮
+            matchBrackets: true,   // 括号匹配
+            mode: 'shell',     // HMTL混合模式
+            lineWrapping: true,    // 自动换行
+            theme: 'erlang-dark',      // 使用monokai模版
+            autoRefresh: true,
+        });
+
     var operateFormatter = function (value, row, index) {//赋予的参数
         return [
             '<a href="#" id="edit" class="btn btn-sm btn-info" title="编辑"><i class="fa fa-pencil fa-fw"></i></a>',
@@ -23,9 +35,21 @@
             ].join(' ');
     }
 
+    var opsevishellFormatter = function(value,row,index) {
+        return '<a href="#" id="editopenshell" class="btn btn-sm btn-info" title="编辑"><i class="fa fa-pencil fa-fw"></i></a>'
+    }
+
     window.operateEvents = {
             'click #edit': function (e, value, row, index) {
                 window.location.href="/game/edit_game/" + row.name;
+            },
+
+            'click #editopenshell':function(e,value,row,index){
+                var dialog = $('#exampleModal').modal({
+                    backdrop: 'static',
+                    keyboard: true
+                });
+                dialog.modal('show');
             },
 
             'click #delete': function (e, value, row, index) {
@@ -75,7 +99,16 @@
                 {
                 field:'name',
                 title:'游戏'
-                },{
+                },
+                {
+                field:'openseriveshell',
+                title:'开服脚本',
+                align:'center',
+                valign:'middle',
+                events:operateEvents,
+                formatter:opsevishellFormatter
+                },
+                {
                       field: 'operate',
                       title: '操作',
                       align: 'center',

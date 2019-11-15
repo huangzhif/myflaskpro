@@ -4,7 +4,6 @@ import os
 import time
 import subprocess
 
-from app.apis.api import PyCrypt
 from app.forms.game import AEChannelForm, AEGameForm, AEZoneForm
 from app.models import Channels, Games, Membership, User, Zones, db
 # from app.models import User
@@ -43,7 +42,11 @@ def create_game():
     if form.validate_on_submit():
         game = Games(name=form.name.data,
                      local_initshell_path=form.local_initshell_path.data,
-                     remote_initshell_path=form.remote_initshell_path.data)
+                     remote_initshell_path=form.remote_initshell_path.data,
+                     local_open_service_pkg_path = form.local_open_service_pkg_path.data,
+                     remote_open_service_pkg_path=form.remote_open_service_pkg_path.data,
+                     remote_open_service_shell_path=form.remote_open_service_shell_path.data,
+                     remote_unzip_path=form.remote_unzip_path.data)
 
         db.session.add(game)
         try:
@@ -76,12 +79,21 @@ def edit_game(name):
     form = AEGameForm(id=edit_game.id,
                       name=edit_game.name,
                       local_initshell_path=edit_game.local_initshell_path,
-                      remote_initshell_path=edit_game.remote_initshell_path)
+                      remote_initshell_path=edit_game.remote_initshell_path,
+                      local_open_service_pkg_path=edit_game.local_open_service_pkg_path,
+                      remote_open_service_pkg_path=edit_game.remote_open_service_pkg_path,
+                      remote_open_service_shell_path=edit_game.remote_open_service_shell_path,
+                      remote_unzip_path=edit_game.remote_unzip_path
+                      )
 
     if form.validate_on_submit():
         edit_game.name=form.name.data
         edit_game.local_initshell_path = form.local_initshell_path.data
         edit_game.remote_initshell_path = form.remote_initshell_path.data
+        edit_game.local_open_service_pkg_path=form.local_open_service_pkg_path.data
+        edit_game.remote_open_service_pkg_path=form.remote_open_service_pkg_path.data
+        edit_game.remote_open_service_shell_path=form.remote_open_service_shell_path.data
+        edit_game.remote_unzip_path=form.remote_unzip_path.data
 
         try:
             db.session.commit()

@@ -12,6 +12,11 @@ class AEGameForm(FlaskForm):
     remote_initshell_path = StringField("远端初始化脚本路径",
                                         validators=[DataRequired()])
 
+    local_open_service_pkg_path = StringField("本地开服版本路径", validators=[DataRequired()])
+    remote_open_service_pkg_path = StringField("远端开服版本路径", validators=[DataRequired()])
+    remote_open_service_shell_path = StringField("远端开服脚本路径", validators=[DataRequired()])
+    remote_unzip_path = StringField("远端发布包解压路径",validators=[DataRequired()])
+
     submit = SubmitField("Submit")
 
 
