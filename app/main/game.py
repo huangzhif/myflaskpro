@@ -1,11 +1,16 @@
-import os,time
+import datetime
+import multiprocessing
+import os
+import time
+import subprocess
+
 from app.apis.api import PyCrypt
-from app.forms.game import AEGameForm,AEChannelForm,AEZoneForm
-from app.models import User, db, Games,Channels,Zones,Membership
+from app.forms.game import AEChannelForm, AEGameForm, AEZoneForm
+from app.models import Channels, Games, Membership, User, Zones, db
 # from app.models import User
-from flask import Blueprint, current_app, flash, jsonify, redirect, \
-    render_template, request, url_for
+from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import login_required
+from app.util import myssh,bash
 
 bp_game = Blueprint("bp_game", __name__, url_prefix="/game")
 
@@ -292,23 +297,101 @@ def server_init():
         return render_template("game/server_init.html",games=games,title="服务初始化")
 
     else:
-        print(request.get_json())
-        time.sleep(5)
-        return jsonify({"status":True,"msg":"succeed"})
+        gameid = request.json["gameid"]
+        file_name = request.json["file_name"]
+        iplists = request.json["iplists"].split(',')
+        gameobj = Games.query.get(gameid)
+
+        """
+        这里本来打算 用ansible来处理的，比较简单方便，但是输出不好看，太多冗余的信息，而且感觉ansible运行速度也达不到标准，
+        使用ansible api 又会做太多处理，我是希望在点击执行之后能尽快执行脚本并且返回信息。
+        """
+        # cmd = "ansible -i '" + iplists + ",' all -m script -a " + os.path.join(gameobj.local_initshell_path, file_name)
+        # print(cmd)
+        # msg = ""
+        # result = subprocess.Popen(cmd, stdin=subprocess.PIPE,
+        #                           stdout=subprocess.PIPE,
+        #                           stderr=subprocess.PIPE, shell=True)
+        # for line in result.stdout.readlines():
+        #     msg += line.decode("utf-8")
+        # for line in result.stderr.readlines():
+        #     msg += line.decode("utf-8")
+        manager = multiprocessing.Manager()
+        q = manager.dict()
+        pool = multiprocessing.Pool(processes=len(iplists))
+        for ip in iplists:
+            # 目标服务器IP，脚本本地路径，脚本远端路径，脚本名，q
+            pw = pool.apply_async(func_init, args=(ip, gameobj.local_initshell_path,gameobj.remote_initshell_path,file_name, q))
+        pool.close()
+        pool.join()
+        total = ""
+        for key, value in q.items():
+            total = total + '-------------' + key + '------------- \n'
+            if value['stdout']:
+                total = total + '【输出】： \n'
+                for v in value['stdout']:
+                    total = total + v
+                total += '\n'
+
+            if value['stderr']:
+                total = total + '【错误信息】： \n'
+                for e in value['stderr']:
+                    total = total + e
+                total += '\n'
+            total += '\n\n'
+
+        return jsonify({"status":True,"msg":total})
+
+
+def func_init(ip, local_initshell_path,remote_initshell_path,file_name, q):
+    """
+    服务初始化功能
+    :param ip: 目标机器IP
+    :param local_initshell_path: 本地脚本路径
+    :param remote_initshell_path: 远端脚本路径
+    :param file_name: 脚本名称
+    :param q: Queue
+    :return: Queue
+    """
+    ssh = myssh(ip)
+    tmp = {}
+
+    if ssh:
+        """1、判断远端是否存在保存路径"""
+        srp = "if [ ! -d '{dest_path}' ];then (mkdir -p {dest_path});fi;".format(dest_path=remote_initshell_path)
+        ssh.exec_command(srp)
+
+        """2、把脚本推送到远端，不使用rsync是因为rsync在脚本里面才安装"""
+        pushcmd = "scp -pr -o StrictHostKeyChecking=no -i " + current_app.config["MYFLASKPROROOTKEY"] + " {src} root@{ip}:{dest};".format(ip=ip,
+                    src=os.path.join(local_initshell_path, file_name),  dest=os.path.join(remote_initshell_path, file_name))
+        bash(pushcmd)
+
+        """3、执行shell，可能需要指定环境变量"""
+        execute = "source /etc/profile;sh {shell}".format(shell=os.path.join(remote_initshell_path, file_name))
+        stding,stdout,stderr = ssh.exec_command(execute)
+
+        tmp["stdout"] = stdout.readlines()
+        tmp["stderr"] = stderr.readlines()
+        ssh.close()
+
+    else:
+        current_app.logger.error("shh连接错误")
+        tmp["stderr"] = "shh连接错误"
+        tmp["stdout"] = ""
+
+    q[ip] = tmp
 
 
 @bp_game.route("/get_initshell/<gameid>",methods=["GET"])
 @login_required
 def get_initshell(gameid):
-    files = []
     game = Games.query.get(gameid)
     try:
         dirs = os.listdir(game.local_initshell_path)
-        for file in dirs:
-            if os.path.splitext(file)[-1] == ".sh":
-                files.append(file)
-
     except Exception as e:
         current_app.logger.error(e)
+        files = []
+    else:
+        files = [file for file in dirs if os.path.splitext(file)[-1] == ".sh"]
 
     return jsonify(files)

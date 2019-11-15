@@ -1,6 +1,6 @@
 import json,time
 
-from app.apis.api import PyCrypt
+from app.util import PyCrypt
 from app.forms.usersinfo import AEUserForm
 from app.models import User, db
 # from app.models import User
