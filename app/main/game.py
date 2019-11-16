@@ -396,10 +396,15 @@ def func_init(ip, local_initshell_path,remote_initshell_path,file_name, q):
     q[ip] = tmp
 
 
-@bp_game.route("/get_initshell/<gameid>",methods=["GET"])
+@bp_game.route("/get_initshell/",methods=["GET"])
 @login_required
-def get_initshell(gameid):
+def get_initshell():
+    gameid = request.args.get("gameid")
+    type = request.args.get("type")
+
     game = Games.query.get(gameid)
+    filename = slugify(game.name, to_lower=True, separator="") + ".md"
+    """获取初始化脚本"""
     try:
         dirs = os.listdir(game.local_initshell_path)
     except Exception as e:
@@ -408,7 +413,20 @@ def get_initshell(gameid):
     else:
         files = [file for file in dirs if os.path.splitext(file)[-1] == ".sh"]
 
-    return jsonify(files)
+    """获取该游戏文档信息"""
+    docpath = os.path.join(basedir,"doc",type)
+    if not os.path.exists(docpath):
+        os.makedirs(docpath)
+
+    docap = os.path.join(docpath,filename)
+    if not (os.path.exists(docap) and os.path.isfile(docap)):
+        with open(docap,"w") as w:
+            w.write('NO DOC...')
+
+    with open(docap,'r') as r:
+        data = r.read()
+
+    return jsonify({"files": files, "pridoc": data})
 
 
 @bp_game.route("/get_script",methods=["POST"])
@@ -463,3 +481,10 @@ def savecontent():
         f.write(content)
 
     return jsonify({"status":True})
+
+
+@bp_game.route("/open_service",methods=["GET"])
+@login_required
+def open_service():
+    games = Games.query.order_by("name")
+    return render_template("game/open_service.html",games=games,title="新服搭建")

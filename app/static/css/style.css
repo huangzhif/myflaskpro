@@ -6424,3 +6424,10 @@ body.skin-3 {
 .CodeMirror {
             height: 440px;
 }
+
+#id_doc {
+    border: 1px solid #aeb2b2;
+    padding-left: 20px;
+    padding-bottom: 30px;
+    border-radius: 10px;
+}

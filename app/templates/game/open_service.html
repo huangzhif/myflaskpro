@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block heading %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+    <div class="col-md-9">
+        <form action="" method="post" class="form form-horizontal">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label class="control-label col-lg-2" for="game"><span style="color: red">* </span>游戏</label>
+                <div class="col-lg-10">
+                    <select class="form-control selectpicker" id="id_game" name="game">
+                        <option value=""></option>
+                        {% for game in games %}
+                            <option value={{ game.id }}>{{ game.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-3"></div>
+    </div>
+{% endblock %}

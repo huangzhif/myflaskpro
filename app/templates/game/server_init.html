@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
 
 {% block heading %}
     {{ title }}
@@ -13,7 +12,7 @@
             <div class="form-group">
                 <label class="control-label col-lg-2" for="game"><span style="color: red">* </span>游戏</label>
                 <div class="col-lg-10">
-                    <select class="form-control" id="id_game" name="game" onchange="selectGame()">
+                    <select class="form-control selectpicker" id="id_game" name="game" onchange="selectGame()">
                         <option value=""></option>
                         {% for game in games %}
                             <option value={{ game.id }}>{{ game.name }}</option>
@@ -24,7 +23,7 @@
             <div class="form-group">
                 <label class="control-label col-lg-2" for="shell"><span style="color: red">* </span>脚本</label>
                 <div class="col-lg-10">
-                    <select class="form-control" id="id_shell" name="shell">
+                    <select class="form-control selectpicker" id="id_shell" name="shell">
                     </select>
                 </div>
             </div>
@@ -52,7 +51,7 @@
 
     </div>
     <div class="col-md-3">
-
+        <div hidden="hidden" id="id_doc"></div>
     </div>
     </div>
 
@@ -60,23 +59,31 @@
 
 {% block custom_foot_js %}
     <script>
+    var converter = new showdown.Converter();
+
     function selectGame() {
         var gameid;
         var game = document.getElementById("id_game");
-        $("#id_shell").html("");
-        for (i = 0; i < game.length; i++) {
-            if (game[i].selected == true) {
-                gameid = game[i].value;
-                $.getJSON("/game/get_initshell/" + gameid,function(data){
-                    var versionstring = "<option value=''></option>";
-                    $.each(data, function (i, item) {
-                    versionstring += "<option value=\"" + item + "\">" + item + "</option>";
-                    });
 
-                    $("#id_shell").html(versionstring);
-                })
-            }
+        $("#id_shell").html("");
+        gameid = $('#id_game').val();
+        if(gameid == ""){
+            return false;
         }
+
+        $.getJSON("/game/get_initshell/?type=initshell&gameid=" + gameid,function(data){
+            var versionstring = "<option value=''></option>";
+            $.each(data["files"], function (i, item) {
+            versionstring += "<option value=\"" + item + "\">" + item + "</option>";
+            });
+            $("#id_shell").html(versionstring);
+             {# 使用bootstrap-select 组件，在赋值后需要刷新 #}
+             $('#id_shell').selectpicker('refresh');
+
+            $("#id_doc").show();
+            var html = converter.makeHtml(data["pridoc"]);
+            document.getElementById("id_doc").innerHTML = html;
+        })
     }
 
     function Execute(){
