@@ -62,16 +62,13 @@
     var converter = new showdown.Converter();
 
     function selectGame() {
-        var gameid;
-        var game = document.getElementById("id_game");
-
         $("#id_shell").html("");
-        gameid = $('#id_game').val();
+        var gameid = $('#id_game').val();
         if(gameid == ""){
             return false;
         }
 
-        $.getJSON("/game/get_initshell/?type=initshell&gameid=" + gameid,function(data){
+        $.getJSON("/game/get_gameinfo/?type=initshell&gameid=" + gameid,function(data){
             var versionstring = "<option value=''></option>";
             $.each(data["files"], function (i, item) {
             versionstring += "<option value=\"" + item + "\">" + item + "</option>";

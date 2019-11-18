@@ -77,12 +77,12 @@ class Games(db.Model):
     local_initshell_path = db.Column(db.String(length=200))
     remote_initshell_path = db.Column(db.String(length=200))
 
-    local_open_service_pkg_path = db.Column(db.String(length=50))
-    local_open_service_shell_path = db.Column(db.String(length=50))
+    local_open_service_pkg_path = db.Column(db.String(length=200))
+    local_open_service_shell_path = db.Column(db.String(length=200))
 
-    remote_open_service_pkg_path = db.Column(db.String(length=50))
-    remote_open_service_shell_path = db.Column(db.String(length=50))
-    remote_unzip_path = db.Column(db.String(length=50))
+    remote_open_service_pkg_path = db.Column(db.String(length=200))
+    remote_open_service_shell_path = db.Column(db.String(length=200))
+    remote_unzip_path = db.Column(db.String(length=200))
 
 
     # channels = db.relationship('Channels',secondary=association_game_channel, backref=db.backref("games"),lazy="dynamic")

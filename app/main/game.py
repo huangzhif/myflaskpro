@@ -3,6 +3,7 @@ import multiprocessing
 import os
 import time
 import subprocess
+import zipfile
 from slugify import slugify
 
 from app.forms.game import AEChannelForm, AEGameForm, AEZoneForm
@@ -313,7 +314,7 @@ def server_init():
     else:
         gameid = request.json["gameid"]
         file_name = request.json["file_name"]
-        iplists = request.json["iplists"].split(',')
+        iplists = request.json["iplists"].rstrip(',').split(',')
         gameobj = Games.query.get(gameid)
 
         """
@@ -375,7 +376,7 @@ def func_init(ip, local_initshell_path,remote_initshell_path,file_name, q):
         srp = "if [ ! -d '{dest_path}' ];then (mkdir -p {dest_path});fi;".format(dest_path=remote_initshell_path)
         ssh.exec_command(srp)
 
-        """2、把脚本推送到远端，不使用rsync是因为rsync在脚本里面才安装"""
+        """2、把脚本推送到远端"""
         pushcmd = "scp -pr -o StrictHostKeyChecking=no -i " + current_app.config["MYFLASKPROROOTKEY"] + " {src} root@{ip}:{dest};".format(ip=ip,
                     src=os.path.join(local_initshell_path, file_name),  dest=os.path.join(remote_initshell_path, file_name))
         bash(pushcmd)
@@ -396,37 +397,84 @@ def func_init(ip, local_initshell_path,remote_initshell_path,file_name, q):
     q[ip] = tmp
 
 
-@bp_game.route("/get_initshell/",methods=["GET"])
+@bp_game.route("/get_gameinfo/",methods=["GET"])
 @login_required
-def get_initshell():
+def get_gameinfo():
     gameid = request.args.get("gameid")
     type = request.args.get("type")
 
     game = Games.query.get(gameid)
     filename = slugify(game.name, to_lower=True, separator="") + ".md"
-    """获取初始化脚本"""
-    try:
-        dirs = os.listdir(game.local_initshell_path)
-    except Exception as e:
-        current_app.logger.error(e)
-        files = []
-    else:
-        files = [file for file in dirs if os.path.splitext(file)[-1] == ".sh"]
+    files = []
+    zips_ver = []
+    channels_list = set()
 
+    if type=="initshell":
+        """获取初始化脚本"""
+        try:
+            dirs = os.listdir(game.local_initshell_path)
+        except Exception as e:
+            current_app.logger.error(e)
+        else:
+            files = [file for file in dirs if os.path.splitext(file)[-1] == ".sh"]
+
+    elif type =="openservice":
+        """开服选择游戏时返回对应渠道信息"""
+        ms = Membership.query.filter_by(game_id=gameid)
+        for i in ms:
+            chanel = Channels.query.get(i.channel_id)
+            channels_list.add((chanel.id,chanel.name))
+
+        """获取本地开服版本包"""
+        dirs = os.listdir(game.local_open_service_pkg_path)
+        try:
+            zips_ver = [zv for zv in dirs if zipfile.is_zipfile(os.path.join(game.local_open_service_pkg_path, zv))]
+        except Exception as e:
+            current_app.logger.error(e)
+
+    """获取文档信息"""
+    data = get_doc(filename,type)
+
+    return jsonify({"files": files,
+                    "zips_ver": zips_ver,
+                    "channels_list": list(channels_list),
+                    "pridoc": data})
+
+
+@bp_game.route("/get_zoneinfo/",methods=["GET"])
+@login_required
+def get_zoneinfo():
+    """
+    参数游戏id，渠道id
+    :return:
+    """
+    gameid= request.args.get("gameid")
+    channelid= request.args.get("channelid")
+    zones_list = []
+    ip_list = ""
+    ms = Membership.query.filter_by(game_id=gameid,channel_id=channelid)
+    for i in ms:
+        zone = Zones.query.get(i.zone_id)
+        zones_list.append((zone.id,zone.zonename))
+
+    return jsonify({"zones_list":zones_list})
+
+
+def get_doc(filename,type):
     """获取该游戏文档信息"""
-    docpath = os.path.join(basedir,"doc",type)
+    docpath = os.path.join(basedir, "doc", type)
     if not os.path.exists(docpath):
         os.makedirs(docpath)
 
-    docap = os.path.join(docpath,filename)
+    docap = os.path.join(docpath, filename)
     if not (os.path.exists(docap) and os.path.isfile(docap)):
-        with open(docap,"w") as w:
+        with open(docap, "w") as w:
             w.write('NO DOC...')
 
-    with open(docap,'r') as r:
+    with open(docap, 'r') as r:
         data = r.read()
 
-    return jsonify({"files": files, "pridoc": data})
+    return data
 
 
 @bp_game.route("/get_script",methods=["POST"])
@@ -448,7 +496,7 @@ def get_script():
         os.makedirs(thispath)
 
     """脚本绝对路径"""
-    scriptap = os.path.join(thispath,filename)
+    scriptap = os.path.join(thispath, filename)
 
     if not (os.path.exists(scriptap) and os.path.isfile(scriptap)):
         with open(scriptap,"w") as w:
@@ -465,6 +513,7 @@ def savecontent():
     content = request.json["content"]
     game = request.json["game"]
     type = request.json["type"]
+    gameobj = Games.query.filter_by(name=game).first()
 
     filename = slugify(game, to_lower=True, separator="") + '.sh'
 
@@ -477,14 +526,120 @@ def savecontent():
     """脚本绝对路径"""
     scriptap = os.path.join(thispath, filename)
 
+    try:
+        gameobj.local_open_service_shell_path = scriptap
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+
     with open(scriptap,'w') as f:
         f.write(content)
 
     return jsonify({"status":True})
 
 
-@bp_game.route("/open_service",methods=["GET"])
+@bp_game.route("/open_service",methods=["GET", "POST"])
 @login_required
 def open_service():
-    games = Games.query.order_by("name")
-    return render_template("game/open_service.html",games=games,title="新服搭建")
+    """
+    开服界面
+    :return:
+    """
+    if request.method == "GET":
+        games = Games.query.order_by("name")
+        return render_template("game/open_service.html",games=games,title="新服搭建")
+
+    else:
+        game = Games.query.get(request.json["id_game"])
+        channel = Channels.query.get(request.json["id_channel"])
+        zonelist = request.json["id_zone"]
+        version = request.json["id_version"]
+
+
+        _dict =dict()
+        for zone in zonelist:
+            """处理一个ip有多个区服的情况"""
+            zoneobj = Zones.query.get(zone)
+            _dict.setdefault(zoneobj.zoneip,dict()).setdefault('zonename',list())
+            _dict[zoneobj.zoneip]['zonename'].append(zoneobj.zonename)
+
+        manager = multiprocessing.Manager()
+        q = manager.dict()
+        pool = multiprocessing.Pool(len(_dict))
+        for k,v in _dict.items():
+            """IP,zonename,game,q"""
+            pw = pool.apply_async(func_openservi,args=(k,v,game,version,q))
+
+        pool.close()
+        pool.join()
+
+        total = ""
+        for key, value in q.items():
+            total = total + '-------------' + key + '------------- \n'
+            if value['stdout']:
+                total = total + '【输出】： \n'
+                for v in value['stdout']:
+                    total = total + v
+                total += '\n'
+
+            if value['stderr']:
+                total = total + '【错误信息】： \n'
+                for e in value['stderr']:
+                    total = total + e
+                total += '\n'
+            total += '\n\n'
+
+        return jsonify({"status":True,"msg":total})
+
+
+def func_openservi(zoneip,zonename,game,version,q):
+    ssh = myssh(zoneip)
+    tmp = {}
+
+    if ssh:
+        """1、判断远端是否存在保存发布包 和shell 路径"""
+        srp = "if [ ! -d '{pkg_path}' ];then (mkdir -p {pkg_path});fi;if [ ! -d '{shell_path}' ];then (mkdir -p {shell_path});fi;".format(
+            pkg_path=game.remote_open_service_pkg_path,shell_path=game.remote_open_service_shell_path)
+        ssh.exec_command(srp)
+
+        """2、把版本s推送到远端"""
+        for ver in version:
+            pushcmd = "scp -pr -o StrictHostKeyChecking=no -i " + current_app.config["MYFLASKPROROOTKEY"] + " {src} root@{ip}:{dest};".format(
+            ip=zoneip,
+            src=os.path.join(game.local_open_service_pkg_path, ver),
+            dest=os.path.join(game.remote_open_service_pkg_path, ver))
+            bash(pushcmd)
+
+        """推送shell脚本"""
+        # local_shell_path = os.path.join(basedir,"scripts","openshell")
+        filename = slugify(game.name, to_lower=True, separator="") + '.sh'
+
+        pushshell = "scp -pr -o StrictHostKeyChecking=no -i " + current_app.config["MYFLASKPROROOTKEY"] + " {src} root@{ip}:{dest};".format(
+            ip=zoneip,
+            src=game.local_open_service_shell_path,
+            dest=os.path.join(game.remote_open_service_shell_path, filename))
+        bash(pushshell)
+
+        """3、解压发布包到指定目录"""
+        cmd2 = ""
+        cmd1 = "rm -rf {unzippath} && mkdir -p {unzippath} &&".format(unzippath=game.remote_unzip_path)
+        for ver in version:
+            cmd2 += "unzip -o -O CP936 -d {unzippath} {dest_version} >/dev/null 2>&1 &&".format(unzippath=game.remote_unzip_path,
+                                                                                                dest_version=os.path.join(game.remote_open_service_pkg_path,ver))
+
+        """4、执行脚本"""
+        execute = "source /etc/profile;sh {shell}".format(
+            shell=os.path.join(game.remote_open_service_shell_path, filename))
+
+        stding, stdout, stderr = ssh.exec_command(cmd1 + cmd2 + execute)
+
+        tmp["stdout"] = stdout.readlines()
+        tmp["stderr"] = stderr.readlines()
+        ssh.close()
+
+    else:
+        current_app.logger.error("shh连接错误")
+        tmp["stderr"] = "shh连接错误"
+        tmp["stdout"] = ""
+
+    q[zoneip] = tmp

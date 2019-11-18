@@ -12,7 +12,7 @@
             <div class="form-group">
                 <label class="control-label col-lg-2" for="game"><span style="color: red">* </span>游戏</label>
                 <div class="col-lg-10">
-                    <select class="form-control selectpicker" id="id_game" name="game">
+                    <select class="form-control selectpicker" id="id_game" name="game" onchange="selectGame()">
                         <option value=""></option>
                         {% for game in games %}
                             <option value={{ game.id }}>{{ game.name }}</option>
@@ -20,8 +20,166 @@
                     </select>
                 </div>
             </div>
+            <div class="form-group">
+                <label class="control-label col-lg-2" for="channel"><span style="color: red">* </span>渠道</label>
+                <div class="col-lg-10">
+                    <select class="form-control selectpicker" id="id_channel" name="channel" onchange="selectChannel()"></select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-lg-2" for="zone"><span style="color: red">* </span>区服</label>
+                <div class="col-lg-10">
+                    <select class="form-control selectpicker" multiple data-actions-box="true" data-live-search="true" id="id_zone" name="zone"></select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-lg-2" for="version"><span style="color: red">* </span>版本</label>
+                <div class="col-lg-10">
+                    <select class="form-control selectpicker" multiple data-actions-box="true" data-live-search="true" id="id_version" name="version"></select>
+                </div>
+            </div>
+
+{#            <div class="form-group">#}
+{#                <label class="control-label col-lg-2" for="iplist">目标机器</label>#}
+{#                <div class="col-lg-10">#}
+{#                    <textarea class="form-control" rows="1" id="id_ip" readonly></textarea>#}
+{#                </div>#}
+{#            </div>#}
+
+            <div class="form-group">
+                <div class="col-lg-offset-2 col-lg-10">
+                    <a href="#" onclick="Execute()" class="btn btn-sm btn-info" id="submit" name="submit" type="submit">Execute</a>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-lg-2" for="publishlog">执行信息</label>
+                <div class="col-lg-offset-2 col-lg-10">
+                <textarea id="publishlog" name="publishlog" rows="20" wrap="hard" readonly="readonly">
+
+                </textarea>
+                </div>
+            </div>
         </form>
     </div>
-    <div class="col-md-3"></div>
+    <div class="col-md-3">
+        <div hidden="hidden" id="id_doc"></div>
     </div>
+    </div>
+{% endblock %}
+
+{% block custom_foot_js %}
+    <script type="application/javascript">
+    var converter = new showdown.Converter();
+    var csrftoken = $('meta[name=csrf-token]').attr('content');
+
+    function selectGame() {
+        {# 选择游戏返回文档、渠道、开服版本 #}
+
+        $("#id_channel").html("");
+        $("#id_zone").html("");
+        $("#id_zone").selectpicker("refresh");
+        $("#id_version").html("");
+        {#$("#id_ip").text("");#}
+        $("#publishlog").val("");
+
+        var gameid = $("#id_game").val();
+        if (gameid==""){
+            return false;
+        }
+
+        $.getJSON("/game/get_gameinfo/?type=openservice&gameid=" +gameid,function (data) {
+            var channelstring = "<option value=''></option>";
+            var versionstring;
+
+            $.each(data["channels_list"],function (i,item) {
+                channelstring += "<option value=\"" + item[0] + "\">" + item[1] + "</option>";
+            });
+
+            $.each(data["zips_ver"],function (i,item) {
+                versionstring += "<option value=\"" + item + "\">" + item + "</option>";
+            });
+
+            $("#id_channel").html(channelstring);
+            $("#id_channel").selectpicker("refresh");
+
+            $("#id_version").html(versionstring);
+            $("#id_version").selectpicker("refresh");
+
+            $("#id_doc").show();
+            var html = converter.makeHtml(data["pridoc"]);
+            document.getElementById("id_doc").innerHTML = html;
+        })
+    }
+
+    function selectChannel() {
+    {#    选择渠道返回区服#}
+        $("#id_zone").html("");
+        var gameid = $("#id_game").val();
+        var channelid = $("#id_channel").val();
+
+        if (channelid == ""){
+            return false;
+        }
+        $.getJSON("/game/get_zoneinfo/?gameid=" + gameid + "&channelid=" + channelid,function (data) {
+            var zonestring;
+            $.each(data["zones_list"],function (i,item) {
+                zonestring += "<option value=\"" + item[0] + "\">" + item[1] + "</option>";
+            });
+
+            $("#id_zone").html(zonestring);
+            $("#id_zone").selectpicker("refresh");
+        });
+    }
+
+    function Execute() {
+        if (!$("#id_game").val() || !$("#id_channel").val() || !$("#id_zone").val() || !$("#id_version").val()) {
+            swal({
+                title: "必填项不能为空！",
+                allowOutsideClick: true,
+                text: "2秒后自动关闭.",
+                timer: 2000,
+                {#              buttons: false#}
+            });
+            return false;
+        }
+
+        $.ajax({
+                url: "{{ url_for('bp_game.open_service') }}",
+                type: "POST",
+                traditional: true,
+                dataType:"json",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    id_game:$("#id_game").val(),
+                    id_channel:$("#id_channel").val(),
+                    id_zone:$("#id_zone").val(),
+                    id_version:$("#id_version").val()
+                }),
+                beforeSend: function (xhr,settings) {
+                    $("#publishlog").val("");
+                    run_waitMe($('.wrapper-content'), 1, 'progressBar');
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                        }
+                },
+                success: function (e) {
+                    if (e['status']) {
+                        $("#publishlog").val(e['msg']);
+                    }
+                    else {
+                    }
+                },
+                complete: function () {
+                    $('.wrapper-content').waitMe('hide');
+                }
+            })
+
+
+
+
+        return false;
+    }
+    </script>
 {% endblock %}
