@@ -82,8 +82,8 @@ def register_logging(app):
     file_handler.setFormatter(formatter)
     file_handler.setLevel(logging.INFO)
 
-    if not app.debug:
-        app.logger.addHandler(file_handler)
+    # if not app.debug:
+    app.logger.addHandler(file_handler)
 
 
 

@@ -5,14 +5,14 @@
 {% endblock %}
 
 {% block content %}
-    <div class="row">
+<div class="row">
     <div class="col-md-9">
         <form action="" method="post" class="form form-horizontal">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label class="control-label col-lg-2" for="game"><span style="color: red">* </span>游戏</label>
                 <div class="col-lg-10">
-                    <select class="form-control selectpicker" id="id_game" name="game" onchange="selectGame('openservice')">
+                    <select class="form-control selectpicker" id="id_game" name="game" onchange="selectGame('updateprogram')">
                         <option value=""></option>
                         {% for game in games %}
                             <option value={{ game.id }}>{{ game.name }}</option>
@@ -26,31 +26,30 @@
                     <select class="form-control selectpicker" id="id_channel" name="channel" onchange="selectChannel()"></select>
                 </div>
             </div>
-
             <div class="form-group">
                 <label class="control-label col-lg-2" for="zone"><span style="color: red">* </span>区服</label>
                 <div class="col-lg-10">
                     <select class="form-control selectpicker" multiple data-actions-box="true" data-live-search="true" id="id_zone" name="zone"></select>
                 </div>
             </div>
-
             <div class="form-group">
                 <label class="control-label col-lg-2" for="version"><span style="color: red">* </span>版本</label>
                 <div class="col-lg-10">
-                    <select class="form-control selectpicker" multiple data-actions-box="true" data-live-search="true" id="id_version" name="version"></select>
+                    <select class="form-control selectpicker" id="id_version" name="version"></select>
                 </div>
             </div>
 
-{#            <div class="form-group">#}
-{#                <label class="control-label col-lg-2" for="iplist">目标机器</label>#}
-{#                <div class="col-lg-10">#}
-{#                    <textarea class="form-control" rows="1" id="id_ip" readonly></textarea>#}
-{#                </div>#}
-{#            </div>#}
+            <div class="form-group">
+                <label class="control-label col-lg-2" for="md5"><span style="color: red">*</span>MD5值</label>
+                <div class="col-lg-10">
+                    <input class="form-control" id="id_md5" name="md5" type="text" required>
+                </div>
+            </div>
 
             <div class="form-group">
                 <div class="col-lg-offset-2 col-lg-10">
-                    <a href="#" onclick="Execute()" class="btn btn-sm btn-info" id="submit" name="submit" type="submit">Execute</a>
+                    <a href="#" class="btn btn-sm btn-info submit" id="id_cold_btn" name="hot_update" type="submit">热更</a>
+                    <a href="#" class="btn btn-sm btn-info submit" id="id_hot_btn" name="cold_update" type="submit">冷更</a>
                 </div>
             </div>
             <div class="form-group">
@@ -63,10 +62,11 @@
             </div>
         </form>
     </div>
+
     <div class="col-md-3">
         <div hidden="hidden" id="id_doc"></div>
     </div>
-    </div>
+</div>
 {% endblock %}
 
 {% block custom_foot_js %}
@@ -74,9 +74,8 @@
     var converter = new showdown.Converter();
     var csrftoken = $('meta[name=csrf-token]').attr('content');
 
-
-    function Execute() {
-        if (!$("#id_game").val() || !$("#id_channel").val() || !$("#id_zone").val() || !$("#id_version").val()) {
+    $(".submit").click(function () {
+        if (!$("#id_game").val() || !$("#id_channel").val() || !$("#id_zone").val() || !$("#id_version").val() || !$("#id_md5").val()) {
             swal({
                 title: "必填项不能为空！",
                 allowOutsideClick: true,
@@ -88,37 +87,38 @@
         }
 
         $.ajax({
-                url: "{{ url_for('bp_game.open_service') }}",
-                type: "POST",
-                traditional: true,
-                dataType:"json",
-                contentType: "application/json",
-                data: JSON.stringify({
-                    id_game:$("#id_game").val(),
-                    id_channel:$("#id_channel").val(),
-                    id_zone:$("#id_zone").val(),
-                    id_version:$("#id_version").val()
-                }),
-                beforeSend: function (xhr,settings) {
-                    $("#publishlog").val("");
-                    run_waitMe($('.wrapper-content'), 1, 'progressBar');
-                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+            url:"{{ url_for('bp_game.update_program') }}",
+            type:"POST",
+            traditional:true,
+            dataType:"json",
+            contentType:"application/json",
+            data:JSON.stringify({
+                id_game:$("#id_game").val(),
+                id_zone:$("#id_zone").val(),
+                id_version:$("#id_version").val(),
+                md5:$("#id_md5").val(),
+                type:this.name,
+            }),
+
+            beforeSend:function (xhr,settings) {
+                $("#publishlog").val("");
+                run_waitMe($('.wrapper-content'),1,'progressBar');
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
                             xhr.setRequestHeader("X-CSRFToken", csrftoken)
                         }
-                },
-                success: function (e) {
-                    if (e['status']) {
-                        $("#publishlog").val(e['msg']);
-                    }
-                    else {
-                    }
-                },
-                complete: function () {
-                    $('.wrapper-content').waitMe('hide');
-                }
-            })
+            },
+            success:function (data) {
+                if (data["status"]){
+                    $("#publishlog").val(data['msg']);
+                }else {}
+            },
+            complete:function () {
+                $('.wrapper-content').waitMe('hide');
+            }
+        })
 
         return false;
-    }
+    })
+
     </script>
 {% endblock %}

@@ -355,21 +355,8 @@ def server_init():
             pw = pool.apply_async(func_init, args=(ip, gameobj.local_initshell_path,gameobj.remote_initshell_path,file_name, q))
         pool.close()
         pool.join()
-        total = ""
-        for key, value in q.items():
-            total = total + '-------------' + key + '------------- \n'
-            if value['stdout']:
-                total = total + '【输出】： \n'
-                for v in value['stdout']:
-                    total = total + v
-                total += '\n'
 
-            if value['stderr']:
-                total = total + '【错误信息】： \n'
-                for e in value['stderr']:
-                    total = total + e
-                total += '\n'
-            total += '\n\n'
+        total = output(q)
 
         return jsonify({"status":True,"msg":total})
 
@@ -434,15 +421,19 @@ def get_gameinfo():
         else:
             files = [file for file in dirs if os.path.splitext(file)[-1] == ".sh"]
 
-    elif type =="openservice":
+    elif type in ["openservice","updateprogram"]:
         """开服选择游戏时返回对应渠道信息"""
         ms = Membership.query.filter_by(game_id=gameid)
         for i in ms:
             chanel = Channels.query.get(i.channel_id)
             channels_list.add((chanel.id,chanel.name))
 
-        """获取本地开服版本包"""
-        dirs = os.listdir(game.local_open_service_pkg_path)
+        if type == "openservice":
+            """获取本地开服版本包"""
+            dirs = os.listdir(game.local_open_service_pkg_path)
+        else:
+            dirs = os.listdir(game.local_update_pkg_path)
+
         try:
             zips_ver = [zv for zv in dirs if zipfile.is_zipfile(os.path.join(game.local_open_service_pkg_path, zv))]
         except Exception as e:
@@ -595,21 +586,7 @@ def open_service():
         pool.close()
         pool.join()
 
-        total = ""
-        for key, value in q.items():
-            total = total + '-------------' + key + '------------- \n'
-            if value['stdout']:
-                total = total + '【输出】： \n'
-                for v in value['stdout']:
-                    total = total + v
-                total += '\n'
-
-            if value['stderr']:
-                total = total + '【错误信息】： \n'
-                for e in value['stderr']:
-                    total = total + e
-                total += '\n'
-            total += '\n\n'
+        total = output(q)
 
         return jsonify({"status":True,"msg":total})
 
@@ -665,3 +642,128 @@ def func_openservi(zoneip,zonename,game,version,q):
         tmp["stdout"] = ""
 
     q[zoneip] = tmp
+    
+    
+@bp_game.route("/update_program",methods=["GET","POST"])
+@login_required
+def update_program():
+    """
+    程序更新功能
+    :return:
+    """
+    if request.method == "GET":
+        games = Games.query.order_by("name")
+        return render_template("game/update_program.html",games=games,title="程序更新")
+    
+    else:
+        game = Games.query.get(request.json["id_game"])
+        zoneids = request.json["id_zone"]
+        version = request.json["id_version"]
+        md5 = request.json["md5"]
+        type = request.json["type"]
+
+        _dict = dict()
+        for id in zoneids:
+            zone = Zones.query.get(id)
+            _dict.setdefault(zone.zoneip,dict()).setdefault("zonename",list())
+            _dict[zone.zoneip]["zonename"].append(zone.zonename)
+
+        manager = multiprocessing.Manager()
+        q = manager.dict()
+
+        pool = multiprocessing.Pool(len(_dict))
+        for k,v in _dict.items():
+            """IP,区服名称，游戏对象，版本，md5,更新类型"""
+            pw = pool.apply_async(func_updateprog,args=(k,v.get('zonename'),game,version,md5,type,q))
+
+        pool.close()
+        pool.join()
+
+        total = output(q)
+
+        return jsonify({"status": True, "msg": total})
+
+
+def func_updateprog(ip, zonename, game, version, md5, style, q):
+    """IP,区服名称，游戏对象，版本，md5,更新类型"""
+    ssh = myssh(ip)
+    tmp = {}
+    if ssh:
+        try:
+            """1、判断远端是否存在保存发布包 和shell 路径"""
+            srp = "if [ ! -d '{pkg_path}' ];then (mkdir -p {pkg_path});fi;if [ ! -d '{shell_path}' ];then (mkdir -p {shell_path});fi;".format(
+                pkg_path=game.remote_update_pkg_path,
+                shell_path=game.remote_hot_update_shell_path if style =="hot_udpate" else game.remote_cold_update_shell_path)
+            ssh.exec_command(srp)
+
+            """2、把版本和脚本推送到指定目录"""
+            pushversion = "scp -pr -o StrictHostKeyChecking=no -i " + current_app.config["MYFLASKPROROOTKEY"] + " {src} root@{ip}:{dest};".format(
+                ip=ip,
+                src=os.path.join(game.local_update_pkg_path, version),
+                dest=os.path.join(game.remote_update_pkg_path, version))
+
+            filename = slugify(game.name, to_lower=True, separator="") + '.sh'
+
+            pushshell = "scp -pr -o StrictHostKeyChecking=no -i " + current_app.config["MYFLASKPROROOTKEY"] + " {src} root@{ip}:{dest};".format(
+                ip=ip,
+                src=game.local_hot_update_shell_path if style =="hot_update" else game.local_cold_update_shell_path,
+                dest=os.path.join(game.remote_hot_update_shell_path if style =="hot_update" else game.remote_cold_update_shell_path,filename))
+
+            bash(pushversion + pushshell)
+
+            """3、推送后校验MD5值"""
+            i,o,e = ssh.exec_command('md5sum {remote_ver}'.format(remote_ver=os.path.join(game.remote_update_pkg_path,version)))
+            if o.readlines()[0].split(' ')[0].upper() != md5.upper():
+                raise Exception('版本md5值传输前后不一致，终止解压更新操作！\n')
+
+            """4、解压发布包到指定目录"""
+            cmd1 = "rm -rf {unzippath} && mkdir -p {unzippath} &&".format(unzippath=game.remote_unzip_path)
+            cmd2 = "unzip -o -O CP936 -d {unzippath} {dest_version} >/dev/null 2>&1 &&".format(
+                unzippath=game.remote_unzip_path,
+                dest_version=os.path.join(game.remote_update_pkg_path, version))
+
+            """5、执行脚本"""
+            execute = "source /etc/profile;sh {shell}".format(
+                shell=os.path.join(game.remote_hot_update_shell_path if type=="hot_update" else game.remote_cold_update_shell_path,filename))
+
+            stding, stdout, stderr = ssh.exec_command(cmd1 + cmd2 + execute)
+
+            tmp["stdout"] = stdout.readlines()
+            tmp["stderr"] = stderr.readlines()
+            ssh.close()
+        except Exception as e:
+            current_app.logger.error(e)
+            tmp["stdout"] = ""
+            tmp["stderr"] = str(e)
+
+    else:
+        current_app.logger.error("shh连接错误")
+        tmp["stderr"] = "shh连接错误"
+        tmp["stdout"] = ""
+
+    q[ip] = tmp
+
+
+def output(q):
+    """
+    格式化输出
+    :param q:
+    :return:
+    """
+    total = ""
+    for key, value in q.items():
+        total = total + '-------------' + key + '------------- \n'
+        if value['stdout']:
+            total = total + '【输出】： \n'
+            for v in value['stdout']:
+                total = total + v
+            total += '\n'
+
+        if value['stderr']:
+            total = total + '【错误信息】： \n'
+            for e in value['stderr']:
+                total = total + e
+            total += '\n'
+        total += '\n\n'
+
+    return total
