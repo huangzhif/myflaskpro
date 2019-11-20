@@ -49,6 +49,11 @@ def create_game():
                      local_open_service_pkg_path = form.local_open_service_pkg_path.data,
                      remote_open_service_pkg_path=form.remote_open_service_pkg_path.data,
                      remote_open_service_shell_path=form.remote_open_service_shell_path.data,
+                     local_update_pkg_path = form.local_update_pkg_path,
+                     remote_update_pkg_path = form.remote_update_pkg_path,
+                     remote_hot_update_shell_path = form.remote_hot_update_shell_path,
+                     remote_cold_update_shell_path = form.remote_cold_update_shell_path,
+
                      remote_unzip_path=form.remote_unzip_path.data)
 
         db.session.add(game)
@@ -86,6 +91,11 @@ def edit_game(name):
                       local_open_service_pkg_path=edit_game.local_open_service_pkg_path,
                       remote_open_service_pkg_path=edit_game.remote_open_service_pkg_path,
                       remote_open_service_shell_path=edit_game.remote_open_service_shell_path,
+                      local_update_pkg_path = edit_game.local_update_pkg_path,
+                      remote_update_pkg_path = edit_game.remote_update_pkg_path,
+                      remote_hot_update_shell_path = edit_game.remote_hot_update_shell_path,
+                      remote_cold_update_shell_path = edit_game.remote_cold_update_shell_path,
+
                       remote_unzip_path=edit_game.remote_unzip_path
                       )
 
@@ -96,6 +106,12 @@ def edit_game(name):
         edit_game.local_open_service_pkg_path=form.local_open_service_pkg_path.data
         edit_game.remote_open_service_pkg_path=form.remote_open_service_pkg_path.data
         edit_game.remote_open_service_shell_path=form.remote_open_service_shell_path.data
+
+        edit_game.local_update_pkg_path = form.local_update_pkg_path.data
+        edit_game.remote_update_pkg_path = form.remote_update_pkg_path.data
+        edit_game.remote_hot_update_shell_path = form.remote_hot_update_shell_path.data
+        edit_game.remote_cold_update_shell_path = form.remote_cold_update_shell_path.data
+
         edit_game.remote_unzip_path=form.remote_unzip_path.data
 
         try:
@@ -490,7 +506,7 @@ def get_script():
     filename = slugify(game, to_lower=True, separator="") + '.sh'
 
     """脚本文件夹路径"""
-    thispath = os.path.join(basedir,"scripts",type)
+    thispath = os.path.join(basedir, "scripts", type)
 
     if not os.path.exists(thispath):
         os.makedirs(thispath)
@@ -499,10 +515,10 @@ def get_script():
     scriptap = os.path.join(thispath, filename)
 
     if not (os.path.exists(scriptap) and os.path.isfile(scriptap)):
-        with open(scriptap,"w") as w:
+        with open(scriptap, "w") as w:
             w.write('#!/bin/bash')
 
-    with open(scriptap,'r') as r:
+    with open(scriptap, 'r') as r:
         data = r.read()
     return jsonify({"status": True, "msg": data})
 
@@ -527,7 +543,13 @@ def savecontent():
     scriptap = os.path.join(thispath, filename)
 
     try:
-        gameobj.local_open_service_shell_path = scriptap
+        if type == "hot_update":
+            gameobj.local_hot_update_shell_path = scriptap
+        elif type == "cold_update":
+            gameobj.local_cold_update_shell_path = scriptap
+        else:
+            gameobj.local_open_service_shell_path = scriptap
+
         db.session.commit()
     except Exception as e:
         current_app.logger.error(e)

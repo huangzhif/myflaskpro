@@ -39,14 +39,22 @@
             ].join(' ');
     }
 
+    var updateshellFormatter = function (value,row,index) {
+        return [
+            '<a href="#" id="hot_update" class="btn btn-sm btn-info editshell" title="热更"><i class="fa fa-pencil fa-fw"></i></a>',
+            '<a href="#" id="cold_update" class="btn btn-sm btn-info editshell" title="冷更"><i class="fa fa-pencil fa-fw"></i></a>'
+            ].join(' ');
+    }
+
     var opsevishellFormatter = function(value,row,index) {
-        return '<a href="#" id="openshell" class="btn btn-sm btn-info editshell" title="Edit"><i class="fa fa-pencil fa-fw"></i></a>'
+        return '<a href="#" id="openshell" class="btn btn-sm btn-info editshell" title="开服"><i class="fa fa-pencil fa-fw"></i></a>'
     }
 
     window.operateEvents = {
             'click #edit': function (e, value, row, index) {
                 window.location.href="/game/edit_game/" + row.name;
             },
+
 
             'click .editshell':function(e,value,row,index){
                 sessionStorage.setItem('game',row.name);
@@ -153,6 +161,14 @@
                 valign:'middle',
                 events:operateEvents,
                 formatter:opsevishellFormatter
+                },
+                {
+                    field:'updateshell',
+                    title:'更新脚本',
+                    align:'center',
+                    valign:'middle',
+                    events:operateEvents,
+                    formatter:updateshellFormatter
                 },
                 {
                       field: 'operate',

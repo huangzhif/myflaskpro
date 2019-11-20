@@ -82,8 +82,16 @@ class Games(db.Model):
 
     remote_open_service_pkg_path = db.Column(db.String(length=200))
     remote_open_service_shell_path = db.Column(db.String(length=200))
-    remote_unzip_path = db.Column(db.String(length=200))
 
+    local_update_pkg_path = db.Column(db.String(length=200))
+    local_hot_update_shell_path = db.Column(db.String(length=200))
+    local_cold_update_shell_path = db.Column(db.String(length=200))
+
+    remote_update_pkg_path = db.Column(db.String(length=200))
+    remote_hot_update_shell_path = db.Column(db.String(length=200))
+    remote_cold_update_shell_path = db.Column(db.String(length=200))
+
+    remote_unzip_path = db.Column(db.String(length=200))
 
     # channels = db.relationship('Channels',secondary=association_game_channel, backref=db.backref("games"),lazy="dynamic")
 

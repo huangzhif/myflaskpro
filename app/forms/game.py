@@ -15,6 +15,12 @@ class AEGameForm(FlaskForm):
     local_open_service_pkg_path = StringField("本地开服版本路径", validators=[DataRequired()])
     remote_open_service_pkg_path = StringField("远端开服版本路径", validators=[DataRequired()])
     remote_open_service_shell_path = StringField("远端开服脚本路径", validators=[DataRequired()])
+
+    local_update_pkg_path = StringField("本地更新版本路径", validators=[DataRequired()])
+    remote_update_pkg_path = StringField("远端更新版本路径", validators=[DataRequired()])
+    remote_hot_update_shell_path = StringField("远端热更脚本路径", validators=[DataRequired()])
+    remote_cold_update_shell_path = StringField("远端冷更脚本路径", validators=[DataRequired()])
+
     remote_unzip_path = StringField("远端发布包解压路径",validators=[DataRequired()])
 
     submit = SubmitField("Submit")
