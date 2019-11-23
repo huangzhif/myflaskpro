@@ -50,6 +50,13 @@
         return '<a href="#" id="openshell" class="btn btn-sm btn-info editshell" title="开服"><i class="fa fa-pencil fa-fw"></i></a>'
     }
 
+    var toggleshellFormatter = function(value,row,index) {
+        return [
+            '<a href="#" id="startshell" class="btn btn-sm btn-info editshell" title="启服脚本"><i class="fa fa-pencil fa-fw"></i></a>',
+            '<a href="#" id="stopshell" class="btn btn-sm btn-info editshell" title="停服脚本"><i class="fa fa-pencil fa-fw"></i></a>'
+            ].join(' ');
+    }
+
     window.operateEvents = {
             'click #edit': function (e, value, row, index) {
                 window.location.href="/game/edit_game/" + row.name;
@@ -169,6 +176,14 @@
                     valign:'middle',
                     events:operateEvents,
                     formatter:updateshellFormatter
+                },
+                {
+                    field:'toggleshell',
+                    title:'启停脚本',
+                    align:'center',
+                    valign:'middle',
+                    events:operateEvents,
+                    formatter:toggleshellFormatter
                 },
                 {
                       field: 'operate',

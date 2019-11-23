@@ -57,10 +57,13 @@ def create_game():
                      local_open_service_pkg_path = form.local_open_service_pkg_path.data,
                      remote_open_service_pkg_path=form.remote_open_service_pkg_path.data,
                      remote_open_service_shell_path=form.remote_open_service_shell_path.data,
-                     local_update_pkg_path = form.local_update_pkg_path,
-                     remote_update_pkg_path = form.remote_update_pkg_path,
-                     remote_hot_update_shell_path = form.remote_hot_update_shell_path,
-                     remote_cold_update_shell_path = form.remote_cold_update_shell_path,
+                     local_update_pkg_path = form.local_update_pkg_path.data,
+                     remote_update_pkg_path = form.remote_update_pkg_path.data,
+                     remote_hot_update_shell_path = form.remote_hot_update_shell_path.data,
+                     remote_cold_update_shell_path = form.remote_cold_update_shell_path.data,
+
+                     remote_startservice_shell_path = form.remote_startservice_shell_path.data,
+                     remote_stopservice_shell_path = form.remote_stopservice_shell_path.data,
 
                      remote_unzip_path=form.remote_unzip_path.data)
 
@@ -104,6 +107,9 @@ def edit_game(name):
                       remote_hot_update_shell_path = edit_game.remote_hot_update_shell_path,
                       remote_cold_update_shell_path = edit_game.remote_cold_update_shell_path,
 
+                      remote_startservice_shell_path = edit_game.remote_startservice_shell_path,
+                      remote_stopservice_shell_path = edit_game.remote_stopservice_shell_path,
+
                       remote_unzip_path=edit_game.remote_unzip_path
                       )
 
@@ -119,6 +125,9 @@ def edit_game(name):
         edit_game.remote_update_pkg_path = form.remote_update_pkg_path.data
         edit_game.remote_hot_update_shell_path = form.remote_hot_update_shell_path.data
         edit_game.remote_cold_update_shell_path = form.remote_cold_update_shell_path.data
+
+        edit_game.remote_startservice_shell_path = form.remote_startservice_shell_path.data
+        edit_game.remote_stopservice_shell_path = form.remote_stopservice_shell_path.data
 
         edit_game.remote_unzip_path=form.remote_unzip_path.data
 
@@ -546,6 +555,10 @@ def savecontent():
             gameobj.local_hot_update_shell_path = scriptap
         elif type == "cold_update":
             gameobj.local_cold_update_shell_path = scriptap
+        elif type == "startshell":
+            gameobj.local_startservice_shell_path = scriptap
+        elif type == "stopshell":
+            gameobj.local_stopservice_shell_path = scriptap
         else:
             gameobj.local_open_service_shell_path = scriptap
 

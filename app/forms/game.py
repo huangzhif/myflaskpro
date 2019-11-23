@@ -21,6 +21,9 @@ class AEGameForm(FlaskForm):
     remote_hot_update_shell_path = StringField("远端热更脚本路径", validators=[DataRequired()])
     remote_cold_update_shell_path = StringField("远端冷更脚本路径", validators=[DataRequired()])
 
+    remote_startservice_shell_path = StringField("远端启服脚本路径",validators=[DataRequired()])
+    remote_stopservice_shell_path = StringField("远端停服脚本路径",validators=[DataRequired()])
+
     remote_unzip_path = StringField("远端发布包解压路径",validators=[DataRequired()])
 
     submit = SubmitField("Submit")
