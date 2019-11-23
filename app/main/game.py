@@ -2,8 +2,10 @@ import datetime
 import multiprocessing
 import os
 import time
+import pdb
 import subprocess
 import zipfile
+import pymysql
 from slugify import slugify
 
 from app.forms.game import AEChannelForm, AEGameForm, AEZoneForm
@@ -13,6 +15,12 @@ from flask import Blueprint, current_app, flash, jsonify, redirect, render_templ
 from flask_login import login_required
 from app.util import myssh,bash
 from app import basedir
+try:
+    import configparser
+except:
+    from six.moves import configparser
+
+conf = configparser.RawConfigParser()
 
 bp_game = Blueprint("bp_game", __name__, url_prefix="/game")
 
@@ -421,7 +429,7 @@ def get_gameinfo():
         else:
             files = [file for file in dirs if os.path.splitext(file)[-1] == ".sh"]
 
-    elif type in ["openservice","updateprogram"]:
+    elif type in ["openservice","updateprogram","updatedb"]:
         """开服选择游戏时返回对应渠道信息"""
         ms = Membership.query.filter_by(game_id=gameid)
         for i in ms:
@@ -767,3 +775,128 @@ def output(q):
         total += '\n\n'
 
     return total
+
+
+@bp_game.route("/update_db",methods=["GET","POST"])
+@login_required
+def update_db():
+    """
+    数据库更新功能
+    :return:
+    """
+    if request.method == "GET":
+        games = Games.query.order_by("name")
+        return render_template("game/update_db.html",title="数据库更新",games=games)
+    else:
+        try:
+            zonelist = request.json["zoneid"]
+            game = Games.query.get(request.json["gameid"])
+            db = request.json["db"]
+            
+            conf.read(os.path.join(basedir,"instance/config.conf"))
+            if not conf.has_section(game.name):
+                raise Exception("没有该游戏数据库账号密码信息，请联系管理员")
+
+            """格式化脚本"""
+            sql = request.json["sql"].replace('\n',' ')
+            res = sql.split(";")
+            sql_list = list(filter(not_empty,res))
+
+            manager = multiprocessing.Manager()
+            q = manager.dict()
+            pool = multiprocessing.Pool(processes=len(zonelist))
+
+            for zone in zonelist:
+                zoneobj = Zones.query.get(zone)
+                if db == "DB_A":
+                    dbbase = zoneobj.db_A
+                elif db=="DB_B":
+                    dbbase = zoneobj.db_B
+                else:
+                    dbbase = zoneobj.db_C
+
+                pw = pool.apply_async(func_dbupdate,args=(zoneobj,game,dbbase,sql_list,q))
+
+            pool.close()
+            pool.join()
+
+            total = ""
+            """一台服务器可能有多个数据库，需要分类显示 """
+            """ q 内容
+            {"IP1-DB1":{"stdout":"content","stderr":"content"},"IP1-DB2":{"stdout":"content","stderr":"content"},"IP1-DB3":{"stdout":"content","stderr":"content"}.....}
+            """
+            """ 需要把q   内容转换为 
+            {"IP1":{"DB1":{"stdout":"content","stderr":"content"},"DB2":{"stdout":"content","stderr":"content"},"DB3":{"stdout":"content","stderr":"content"}}.........}
+            """
+            q_format = {}
+            for qk, qv in q.items():
+                _ip, _db = qk.split("-")
+                q_format.setdefault(_ip, dict()).setdefault(_db, dict())
+                q_format[_ip][_db]["stdout"] = qv["stdout"]
+                q_format[_ip][_db]["stderr"] = qv["stderr"]
+
+            for key, value in q_format.items():
+                total = total + '------------------ ' + key + ' ------------------ \n'
+                for k, v in value.items():
+                    total = total + '  >>>> ' + k + ' <<<< \n'
+                    if v['stdout']:
+                        total = total + '【输出】： \n'
+                        for _v in v['stdout']:
+                            total = total + _v
+                        total += '\n'
+
+                    if v['stderr']:
+                        total = total + '【错误信息】： \n'
+                        for e in v['stderr']:
+                            total = total + e
+                        total += '\n'
+                total += '\n\n'
+
+            status = True
+            msg = "msg"
+        except Exception as e:
+            status = False
+            total = str(e)
+            current_app.logger.error(e)
+        return jsonify({"status":status,"msg":total})
+
+
+def func_dbupdate(zoneobj,game,dbbase,sql_list,q):
+    tmp = {}
+    account = conf.get(game.name, "ACCOUNT")
+    psd = conf.get(game.name, "PASSWORD")
+    try:
+        conn = pymysql.connect(host=zoneobj.dblink,
+                               port=int(zoneobj.dbport),
+                               user=account,
+                               password=psd,
+                               database=dbbase,
+                               charset="utf8")
+    except Exception as e:
+        tmp["stdout"] = ""
+        tmp["stderr"] = str(e) + "\n"
+        q[zoneobj.dblink + "-" + dbbase] = tmp
+
+    try:
+        cursor = conn.cursor()
+        tmp["stdout"] = ""
+        for sql in sql_list:
+            n = cursor.execute(sql)
+            tmp["stdout"] += '脚本：' + sql[:30] + " ... 执行完成, 影响 {num} 条数据;".format(num=n) + "\n"
+        tmp["stderr"] = ""
+
+        q[zoneobj.dblink + "-" + dbbase] = tmp
+
+    except Exception as e:
+        tmp["stdout"] = ""
+        tmp["stderr"] = '脚本：' + sql[:30] + " ... 执行失败：{msg}，该库变更已回滚 ".format(msg=str(e)) + "\n"
+        q[zoneobj.dblink + "-" + dbbase] = tmp
+        conn.rollback()
+    finally:
+        conn.commit()
+        conn.close()
+
+
+def not_empty(s):
+    """去除列表空值"""
+    return s and s.strip()

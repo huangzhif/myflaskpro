@@ -59,18 +59,21 @@ function selectGame(type) {
 		$("#id_channel").html(channelstring);
 		$("#id_channel").selectpicker("refresh");
 
-		$("#id_version").html(versionstring);
-		$("#id_version").selectpicker("refresh");
+		if (type != "updatedb"){
+			$("#id_version").html(versionstring);
+			$("#id_version").selectpicker("refresh");
 
-		$("#id_doc").show();
-		var html = converter.makeHtml(data["pridoc"]);
-		document.getElementById("id_doc").innerHTML = html;
+			$("#id_doc").show();
+			var html = converter.makeHtml(data["pridoc"]);
+			document.getElementById("id_doc").innerHTML = html;
+		}
 	})
 }
 
 
 function selectChannel() {
         $("#id_zone").html("");
+        $("#id_zone").selectpicker("refresh");
         var gameid= $("#id_game").val();
         var channelid = $("#id_channel").val();
 
