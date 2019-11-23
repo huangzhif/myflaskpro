@@ -438,7 +438,7 @@ def get_gameinfo():
         else:
             files = [file for file in dirs if os.path.splitext(file)[-1] == ".sh"]
 
-    elif type in ["openservice","updateprogram","updatedb"]:
+    elif type in ["openservice","updateprogram","updatedb","toggleservice"]:
         """开服选择游戏时返回对应渠道信息"""
         ms = Membership.query.filter_by(game_id=gameid)
         for i in ms:
@@ -913,3 +913,18 @@ def func_dbupdate(zoneobj,game,dbbase,sql_list,q):
 def not_empty(s):
     """去除列表空值"""
     return s and s.strip()
+
+
+@bp_game.route("/toggle_service",methods=["GET","POST"])
+@login_required
+def toggle_service():
+    """
+    启停游戏功能
+    :return:
+    """
+    if request.method == 'GET':
+        games = Games.query.order_by("name")
+        return render_template("game/toggle_service.html",title="启停游戏",games=games)
+
+    else:
+        pass
