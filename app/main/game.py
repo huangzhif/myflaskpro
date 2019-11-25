@@ -52,7 +52,7 @@ def create_game():
     form = AEGameForm()
     if form.validate_on_submit():
         game = Games(name=form.name.data,
-                     local_initshell_path=form.local_initshell_path.data,
+                     # local_initshell_path=form.local_initshell_path.data,
                      remote_initshell_path=form.remote_initshell_path.data,
                      local_open_service_pkg_path = form.local_open_service_pkg_path.data,
                      remote_open_service_pkg_path=form.remote_open_service_pkg_path.data,
@@ -97,7 +97,7 @@ def edit_game(name):
     edit_game = Games.query.filter_by(name=name).first()
     form = AEGameForm(id=edit_game.id,
                       name=edit_game.name,
-                      local_initshell_path=edit_game.local_initshell_path,
+                      # local_initshell_path=edit_game.local_initshell_path,
                       remote_initshell_path=edit_game.remote_initshell_path,
                       local_open_service_pkg_path=edit_game.local_open_service_pkg_path,
                       remote_open_service_pkg_path=edit_game.remote_open_service_pkg_path,
@@ -115,7 +115,7 @@ def edit_game(name):
 
     if form.validate_on_submit():
         edit_game.name=form.name.data
-        edit_game.local_initshell_path = form.local_initshell_path.data
+        # edit_game.local_initshell_path = form.local_initshell_path.data
         edit_game.remote_initshell_path = form.remote_initshell_path.data
         edit_game.local_open_service_pkg_path=form.local_open_service_pkg_path.data
         edit_game.remote_open_service_pkg_path=form.remote_open_service_pkg_path.data
@@ -346,7 +346,7 @@ def server_init():
 
     else:
         gameid = request.json["gameid"]
-        file_name = request.json["file_name"]
+        # file_name = request.json["file_name"]
         iplists = request.json["iplists"].rstrip(',').split(',')
         gameobj = Games.query.get(gameid)
 
@@ -369,7 +369,7 @@ def server_init():
         pool = multiprocessing.Pool(processes=len(iplists))
         for ip in iplists:
             # 目标服务器IP，脚本本地路径，脚本远端路径，脚本名，q
-            pw = pool.apply_async(func_init, args=(ip, gameobj.local_initshell_path,gameobj.remote_initshell_path,file_name, q))
+            pw = pool.apply_async(func_init, args=(ip, gameobj, q))
         pool.close()
         pool.join()
 
@@ -378,13 +378,11 @@ def server_init():
         return jsonify({"status":True,"msg":total})
 
 
-def func_init(ip, local_initshell_path,remote_initshell_path,file_name, q):
+def func_init(ip, gameobj, q):
     """
     服务初始化功能
     :param ip: 目标机器IP
-    :param local_initshell_path: 本地脚本路径
-    :param remote_initshell_path: 远端脚本路径
-    :param file_name: 脚本名称
+    :param gameobj: 游戏对象
     :param q: Queue
     :return: Queue
     """
@@ -393,16 +391,16 @@ def func_init(ip, local_initshell_path,remote_initshell_path,file_name, q):
 
     if ssh:
         """1、判断远端是否存在保存路径"""
-        srp = "if [ ! -d '{dest_path}' ];then (mkdir -p {dest_path});fi;".format(dest_path=remote_initshell_path)
+        srp = "if [ ! -d '{dest_path}' ];then (mkdir -p {dest_path});fi;".format(dest_path=gameobj.remote_initshell_path)
         ssh.exec_command(srp)
 
         """2、把脚本推送到远端"""
         pushcmd = "scp -pr -o StrictHostKeyChecking=no -i " + current_app.config["MYFLASKPROROOTKEY"] + " {src} root@{ip}:{dest};".format(ip=ip,
-                    src=os.path.join(local_initshell_path, file_name),  dest=os.path.join(remote_initshell_path, file_name))
+                    src=gameobj.local_initshell_path,  dest=gameobj.remote_initshell_path)
         bash(pushcmd)
 
         """3、执行shell，可能需要指定环境变量"""
-        execute = "source /etc/profile;sh {shell}".format(shell=os.path.join(remote_initshell_path, file_name))
+        execute = "source /etc/profile;sh {shell}".format(shell=os.path.join(gameobj.remote_initshell_path,os.path.basename(gameobj.local_initshell_path)))
         stding,stdout,stderr = ssh.exec_command(execute)
 
         tmp["stdout"] = stdout.readlines()
@@ -430,31 +428,36 @@ def get_gameinfo():
     channels_list = set()
 
     if type=="initshell":
-        """获取初始化脚本"""
-        try:
-            dirs = os.listdir(game.local_initshell_path)
-        except Exception as e:
-            current_app.logger.error(e)
-        else:
-            files = [file for file in dirs if os.path.splitext(file)[-1] == ".sh"]
+        pass
+        # """获取初始化脚本"""
+        # try:
+        #     dirs = os.listdir(game.local_initshell_path)
+        # except Exception as e:
+        #     current_app.logger.error(e)
+        # else:
+        #     files = [file for file in dirs if os.path.splitext(file)[-1] == ".sh"]
 
-    elif type in ["openservice","updateprogram","updatedb","toggleservice"]:
+    else:
         """开服选择游戏时返回对应渠道信息"""
         ms = Membership.query.filter_by(game_id=gameid)
         for i in ms:
             chanel = Channels.query.get(i.channel_id)
             channels_list.add((chanel.id,chanel.name))
 
+        thispath = ""
         if type == "openservice":
             """获取本地开服版本包"""
-            dirs = os.listdir(game.local_open_service_pkg_path)
-        else:
-            dirs = os.listdir(game.local_update_pkg_path)
+            thispath = game.local_open_service_pkg_path
+        elif type=="updateprogram":
+            thispath = game.local_update_pkg_path
 
-        try:
-            zips_ver = [zv for zv in dirs if zipfile.is_zipfile(os.path.join(game.local_open_service_pkg_path, zv))]
-        except Exception as e:
-            current_app.logger.error(e)
+        if thispath:
+            dirs = os.listdir(thispath)
+
+            try:
+                zips_ver = [zv for zv in dirs if zipfile.is_zipfile(os.path.join(thispath, zv))]
+            except Exception as e:
+                current_app.logger.error(e)
 
     """获取文档信息"""
     data = get_doc(filename,type)
@@ -559,6 +562,8 @@ def savecontent():
             gameobj.local_startservice_shell_path = scriptap
         elif type == "stopshell":
             gameobj.local_stopservice_shell_path = scriptap
+        elif type == "initshell":
+            gameobj.local_initshell_path = scriptap
         else:
             gameobj.local_open_service_shell_path = scriptap
 
@@ -924,7 +929,83 @@ def toggle_service():
     """
     if request.method == 'GET':
         games = Games.query.order_by("name")
-        return render_template("game/toggle_service.html",title="启停游戏",games=games)
+        return render_template("game/toggle_service.html", title="启停游戏",
+                               games=games)
 
     else:
-        pass
+        gameobj = Games.query.get(request.json["id_game"])
+        zonelist = request.json["id_zone"]
+        type = request.json["type"]
+        # pdb.set_trace()
+
+        if type == "startshell":
+            local_file_path = gameobj.local_startservice_shell_path
+            remote_path = gameobj.remote_startservice_shell_path
+        else:
+            local_file_path = gameobj.local_stopservice_shell_path
+            remote_path = gameobj.remote_stopservice_shell_path
+
+        try:
+            filename = os.path.basename(local_file_path)
+
+            _dict = dict()
+            for zone in zonelist:
+                zoneobj = Zones.query.get(zone)
+                _dict.setdefault(zoneobj.zoneip,dict()).setdefault("zonename",list())
+                _dict[zoneobj.zoneip]["zonename"].append(zoneobj.zonename)
+
+            manager = multiprocessing.Manager()
+            q = manager.dict()
+            pool = multiprocessing.Pool(len(_dict))
+            for k,v in _dict.items():
+                pw = pool.apply_async(func_toggle,args=(k,v.get("zonename"),gameobj,local_file_path,remote_path,filename,q))
+
+            pool.close()
+            pool.join()
+
+            total = output(q)
+            status = True
+        except Exception as e:
+            current_app.logger.error(e)
+            total = str(e)
+            status = False
+
+        return jsonify({"status": status, "msg": total})
+
+
+def func_toggle(ip,zonename,gameobj,local_file_path,remote_path,filename,q):
+    tmp = dict()
+    ssh = myssh(ip)
+    if ssh:
+        try:
+            # 第一步：在远端创建保存shell 脚本路径
+            srp = "if [ ! -d '{shell_path}' ];then (mkdir -p {shell_path});fi;".format(shell_path=remote_path)
+            stdin1, stdout1, stderr1 = ssh.exec_command(srp)
+
+            # 第二步：推shell
+            pushshell = "scp -pr -o StrictHostKeyChecking=no -i " + current_app.config["MYFLASKPROROOTKEY"] + " {src} root@{ip}:{dest};".format(
+                ip=ip,
+                src=local_file_path,
+                dest=os.path.join(remote_path,filename))
+
+            bash(pushshell)
+
+            """3、执行脚本"""
+            execute = "source /etc/profile;sh {shell}".format(
+                shell=os.path.join(remote_path,filename))
+
+            stding, stdout, stderr = ssh.exec_command(execute)
+
+            tmp["stdout"] = stdout.readlines()
+            tmp["stderr"] = stderr.readlines()
+            ssh.close()
+        except Exception as e:
+            current_app.logger.error(e)
+            tmp["stdout"] = ""
+            tmp["stderr"] = str(e)
+    else:
+        tmp['stdout'] = ""
+        tmp['stderr'] = "ssh 连接错误或超时. 请查看日志\n"
+        current_app.logger.error(tmp["stderr"])
+
+    q[ip] = tmp

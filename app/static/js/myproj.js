@@ -46,7 +46,7 @@ function selectGame(type) {
 
 	$.getJSON("/game/get_gameinfo/?type=" + type + "&gameid=" + gameid,function (data) {
 		var channelstring = "<option value=''></option>";
-		var versionstring = "<option value=''></option>";
+		var versionstring;
 
 		$.each(data["channels_list"],function (i,item) {
 			channelstring += "<option value=\"" + item[0] + "\">" + item[1] + "</option>";

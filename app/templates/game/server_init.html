@@ -20,13 +20,13 @@
                     </select>
                 </div>
             </div>
-            <div class="form-group">
-                <label class="control-label col-lg-2" for="shell"><span style="color: red">* </span>脚本</label>
-                <div class="col-lg-10">
-                    <select class="form-control selectpicker" id="id_shell" name="shell">
-                    </select>
-                </div>
-            </div>
+{#            <div class="form-group">#}
+{#                <label class="control-label col-lg-2" for="shell"><span style="color: red">* </span>脚本</label>#}
+{#                <div class="col-lg-10">#}
+{#                    <select class="form-control selectpicker" id="id_shell" name="shell">#}
+{#                    </select>#}
+{#                </div>#}
+{#            </div>#}
             <div class="form-group">
                 <label class="control-label col-lg-2" for="iplist"><span style="color: red">* </span>IP列表</label>
                 <div class="col-lg-10">
@@ -62,20 +62,20 @@
     var converter = new showdown.Converter();
 
     function selectGame() {
-        $("#id_shell").html("");
+        {#$("#id_shell").html("");#}
         var gameid = $('#id_game').val();
         if(gameid == ""){
             return false;
         }
 
         $.getJSON("/game/get_gameinfo/?type=initshell&gameid=" + gameid,function(data){
-            var versionstring = "<option value=''></option>";
+{#            var versionstring = "<option value=''></option>";
             $.each(data["files"], function (i, item) {
             versionstring += "<option value=\"" + item + "\">" + item + "</option>";
-            });
-            $("#id_shell").html(versionstring);
-             {# 使用bootstrap-select 组件，在赋值后需要刷新 #}
-             $('#id_shell').selectpicker('refresh');
+            });#}
+{#            $("#id_shell").html(versionstring);
+             #}{# 使用bootstrap-select 组件，在赋值后需要刷新 #}{#
+             $('#id_shell').selectpicker('refresh');#}
 
             $("#id_doc").show();
             var html = converter.makeHtml(data["pridoc"]);
@@ -86,7 +86,7 @@
     function Execute(){
         var csrftoken = $('meta[name=csrf-token]').attr('content');
 
-        if (!$("#id_game").val() || !$("#id_shell").val() || !$("#id_iplist").val()){
+        if (!$("#id_game").val() || !$("#id_iplist").val()){
             swal({
               title: "必填项不能为空！",
                allowOutsideClick:true,
@@ -105,7 +105,7 @@
                 contentType: "application/json",
                 data: JSON.stringify({
                     "gameid": $("#id_game").val(),
-                    "file_name":$("#id_shell").val(),
+                    {#"file_name":$("#id_shell").val(),#}
                     "iplists":$("#id_iplist").val(),
                 }),
                 beforeSend: function (xhr,settings) {

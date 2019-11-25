@@ -36,7 +36,8 @@
             </div>
             <div class="form-group">
                 <div class="col-lg-offset-2 col-lg-10">
-                    <a href="#" onclick="Execute()" class="btn btn-sm btn-info" id="submit" name="submit" type="submit">Execute</a>
+                    <a href="#" class="btn btn-sm btn-info submit" id="id_start_btn" name="startshell" type="submit">启服</a>
+                    <a href="#" class="btn btn-sm btn-info submit" id="id_stop_btn" name="stopshell" type="submit">停服</a>
                 </div>
             </div>
             <div class="form-group">
@@ -58,7 +59,7 @@
     var converter = new showdown.Converter();
     var csrftoken = $('meta[name=csrf-token]').attr('content');
 
-    function Execute() {
+    $(".submit").click(function () {
         if (!$("#id_game").val() || !$("#id_channel").val() || !$("#id_zone").val()) {
             swal({
                 title: "必填项不能为空！",
@@ -70,9 +71,35 @@
             return false;
         }
 
+        $.ajax({
+            url:"{{ url_for('bp_game.toggle_service') }}",
+            type:"POST",
+            traditional:true,
+            dataType:"json",
+            contentType:"application/json",
+            data:JSON.stringify({
+                id_game:$("#id_game").val(),
+                id_zone:$("#id_zone").val(),
+                type:this.name,
+            }),
+
+            beforeSend:function (xhr,settings) {
+                $("#publishlog").val("");
+                run_waitMe($('.wrapper-content'),1,'progressBar');
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                        }
+            },
+            success:function (data) {
+                $("#publishlog").val(data['msg']);
+            },
+            complete:function () {
+                $('.wrapper-content').waitMe('hide');
+            }
+        })
 
         return false;
-    }
+    })
     </script>
 
 {% endblock %}

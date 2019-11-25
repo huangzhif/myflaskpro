@@ -7,8 +7,8 @@ from app.models import Games,Channels
 class AEGameForm(FlaskForm):
     id = HiddenField("id", validators=[Optional()])
     name = StringField("游戏", validators=[DataRequired()])
-    local_initshell_path = StringField("本地初始化脚本路径",
-                                       validators=[DataRequired()])
+    # local_initshell_path = StringField("本地初始化脚本路径",
+    #                                    validators=[DataRequired()])
     remote_initshell_path = StringField("远端初始化脚本路径",
                                         validators=[DataRequired()])
 
