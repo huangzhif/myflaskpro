@@ -1,0 +1,58 @@
+{% macro selectgame(Games,type="") -%}
+    <div class="form-group">
+        <label class="control-label col-lg-2" for="game"><span
+                style="color: red">* </span>游戏</label>
+        <div class="col-lg-10">
+            <select class="form-control selectpicker" id="id_game" name="game"  onchange="selectGame('{{ type }}')">
+                <option value=""></option>
+                {% for game in Games %}
+                    <option value={{ game.id }}>{{ game.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+{%- endmacro %}
+
+{% macro selectchannel() -%}
+    <div class="form-group">
+        <label class="control-label col-lg-2" for="channel"><span
+                style="color: red">* </span>渠道</label>
+        <div class="col-lg-10">
+            <select class="form-control selectpicker" id="id_channel"
+                    name="channel" onchange="selectChannel()"></select>
+        </div>
+    </div>
+{%- endmacro %}
+
+{% macro selectzone() -%}
+    <div class="form-group">
+        <label class="control-label col-lg-2" for="zone"><span
+                style="color: red">* </span>区服</label>
+        <div class="col-lg-10">
+            <select class="form-control selectpicker" multiple
+                    data-actions-box="true" data-live-search="true"
+                    id="id_zone" name="zone"></select>
+        </div>
+    </div>
+{%- endmacro %}
+
+{% macro submit() -%}
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <a href="#" onclick="Execute()" class="btn btn-sm btn-info"
+               id="submit" name="submit" type="submit">Execute</a>
+        </div>
+    </div>
+{%- endmacro %}
+
+{% macro output() -%}
+    <div class="form-group">
+        <label class="control-label col-lg-2" for="publishlog">执行信息</label>
+        <div class="col-lg-offset-2 col-lg-10">
+                <textarea id="publishlog" name="publishlog" rows="20"
+                          wrap="hard" readonly="readonly">
+
+                </textarea>
+        </div>
+    </div>
+{%- endmacro %}

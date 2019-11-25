@@ -1,7 +1,7 @@
 import datetime
 import multiprocessing
 import os
-import time
+import time,datetime
 import pdb
 import subprocess
 import zipfile
@@ -12,7 +12,7 @@ from app.forms.game import AEChannelForm, AEGameForm, AEZoneForm
 from app.models import Channels, Games, Membership, User, Zones, db
 # from app.models import User
 from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, url_for
-from flask_login import login_required
+from flask_login import login_required,current_user
 from app.util import myssh,bash
 from app import basedir
 try:
@@ -993,6 +993,92 @@ def func_toggle(ip,zonename,gameobj,local_file_path,remote_path,filename,q):
             """3、执行脚本"""
             execute = "source /etc/profile;sh {shell}".format(
                 shell=os.path.join(remote_path,filename))
+
+            stding, stdout, stderr = ssh.exec_command(execute)
+
+            tmp["stdout"] = stdout.readlines()
+            tmp["stderr"] = stderr.readlines()
+            ssh.close()
+        except Exception as e:
+            current_app.logger.error(e)
+            tmp["stdout"] = ""
+            tmp["stderr"] = str(e)
+    else:
+        tmp['stdout'] = ""
+        tmp['stderr'] = "ssh 连接错误或超时. 请查看日志\n"
+        current_app.logger.error(tmp["stderr"])
+
+    q[ip] = tmp
+
+
+@bp_game.route("/batch_process", methods=["GET", "POST"])
+@login_required
+def batch_process():
+    if request.method == "GET":
+        return render_template("game/batch_process.html",title="批处理")
+    else:
+        try:
+            gameid = request.json["id_game"]
+            zoneid = request.json["id_zone"]
+            gameobj = Games.query.get(gameid)
+            script = request.json["script"]
+
+            _dict = dict()
+            for zone in zoneid:
+                zoneobj = Zones.query.get(zone)
+                _dict.setdefault(zoneobj.zoneip, dict()).setdefault("zonename",
+                                                                    list())
+                _dict[zoneobj.zoneip]["zonename"].append(zoneobj.zonename)
+
+            dt = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+            filename = current_user.username + "_" + dt + ".sh"
+
+            """脚本文件夹路径"""
+            thispath = os.path.join(basedir, "scripts", "batch_process")
+
+            if not os.path.exists(thispath):
+                os.makedirs(thispath)
+
+            """脚本绝对路径"""
+            scriptap = os.path.join(thispath, filename)
+
+            with open(scriptap, 'w') as w:
+                w.write(script)
+
+            manager = multiprocessing.Manager()
+            q = manager.dict()
+            pool = multiprocessing.Pool(len(_dict))
+            for k,v in _dict.items():
+                pw = pool.apply_async(func_batch, args=(k, scriptap, filename, q))
+
+            pool.close()
+            pool.join()
+
+            total = output(q)
+            status = True
+        except Exception as e:
+            current_app.logger.error(e)
+            total = str(e)
+            status = False
+
+        return jsonify({"status":status,"msg":total})
+
+
+def func_batch(ip,scriptap,filename,q):
+    tmp = dict()
+    ssh = myssh(ip)
+    if ssh:
+        try:
+            # 第一步：推shell
+            pushshell = "scp -pr -o StrictHostKeyChecking=no -i " + current_app.config["MYFLASKPROROOTKEY"] + " {src} root@{ip}:{dest};".format(
+                ip=ip,
+                src=scriptap,
+                dest=os.path.join("/tmp", filename))
+
+            bash(pushshell)
+
+            """2、执行脚本"""
+            execute = "source /etc/profile;sh {shell}".format(shell=os.path.join("/tmp", filename))
 
             stding, stdout, stderr = ssh.exec_command(execute)
 

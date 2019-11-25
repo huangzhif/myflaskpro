@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% import "macro_temps.html" as form %}
+
+{% block heading %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+    <div class="col-md-12">
+        <form action="" method="" class="form-group form-horizontal">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {{ form.selectgame(Games,type='batch_process') }}
+            {{ form.selectchannel() }}
+            {{ form.selectzone() }}
+
+            <div class="form-group">
+                <label class="control-label col-lg-2" for="editor"><span style="color: red">* </span>脚本</label>
+                <div class="col-lg-4">
+                    <textarea id="editor" name="editor">#!/bin/bash</textarea>
+                </div>
+                <div class="col-lg-1">
+                    <a class="btn btn-sm btn-primary" id="submit" onclick="Execute()" type="submit">Execute</a>
+                </div>
+                <div class="col-lg-5">
+                    <textarea id="publishlog" name="publishlog" style="height: 440px" wrap="hard" readonly="readonly"></textarea>
+                </div>
+            </div>
+
+        </form>
+    </div>
+    </div>
+{% endblock %}
+
+{% block custom_foot_js %}
+    <script type="application/javascript">
+        var converter = new showdown.Converter();
+        var csrftoken = $('meta[name=csrf-token]').attr('content');
+
+        var editor = CodeMirror.fromTextArea(document.getElementById("editor"),{
+        lineNumbers: true,     // 显示行数
+        indentUnit: 4,         // 缩进单位为4
+        styleActiveLine: true, // 当前行背景高亮
+        matchBrackets: true,   // 括号匹配
+        mode: 'shell',     // HMTL混合模式
+        lineWrapping: true,    // 自动换行
+        theme: 'erlang-dark',      // 使用monokai模版
+        autoRefresh: true,
+        });
+        editor.setOption("extraKeys", {
+            // Tab键换成4个空格
+            Tab: function(cm) {
+                var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+                cm.replaceSelection(spaces);
+            },
+            // F11键切换全屏
+            "F11": function(cm) {
+                cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+            },
+            // Esc键退出全屏
+            "Esc": function(cm) {
+                if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+            },
+        });
+
+        function Execute() {
+            var script = editor.getValue();
+            if (!$("#id_game").val() || !$("#id_channel").val() || !$("#id_zone").val()) {
+                swal({
+                    title: "必填项不能为空！",
+                    allowOutsideClick: true,
+                    text: "2秒后自动关闭.",
+                    timer: 2000,
+                    {#              buttons: false#}
+                });
+                return false;
+            }
+            $.ajax({
+                url:"{{ url_for('bp_game.batch_process') }}",
+                type:"POST",
+                traditional:true,
+                dataType:"json",
+                contentType:"application/json",
+                data:JSON.stringify({
+                    id_game:$("#id_game").val(),
+                    id_channel:$("#id_channel").val(),
+                    id_zone:$("#id_zone").val(),
+                    script:script
+                }),
+                beforeSend:function (xhr,settings) {
+                    $("publishlog").val("");
+                    run_waitMe($('.wrapper-content'), 1, 'progressBar');
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                },
+                success:function (data) {
+                    $("#publishlog").val(data["msg"]);
+                },
+                complete:function () {
+                    $(".wrapper-content").waitMe("hide");
+                }
+            })
+
+            return false;
+        }
+    </script>
+{% endblock %}

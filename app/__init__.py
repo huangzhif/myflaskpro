@@ -29,8 +29,15 @@ def create_app():
     # register_modelobj()
     register_shell_context(app)
     register_session_lifetime(app)
+    register_vars_for_temps(app)
 
     return app
+
+
+def register_vars_for_temps(app):
+    @app.context_processor
+    def inject_vars_for_all_temps():
+        return dict(Games=Games.query.order_by("name"))
 
 
 def register_session_lifetime(app):

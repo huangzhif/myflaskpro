@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "macro_temps.html" as form %}
 
 {% block heading %}
     {{ title }}
@@ -9,17 +10,7 @@
     <div class="col-md-9">
         <form action="" method="post" class="form form-horizontal">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <div class="form-group">
-                <label class="control-label col-lg-2" for="game"><span style="color: red">* </span>游戏</label>
-                <div class="col-lg-10">
-                    <select class="form-control selectpicker" id="id_game" name="game" onchange="selectGame()">
-                        <option value=""></option>
-                        {% for game in games %}
-                            <option value={{ game.id }}>{{ game.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
+            {{ form.selectgame(Games) }}
 {#            <div class="form-group">#}
 {#                <label class="control-label col-lg-2" for="shell"><span style="color: red">* </span>脚本</label>#}
 {#                <div class="col-lg-10">#}

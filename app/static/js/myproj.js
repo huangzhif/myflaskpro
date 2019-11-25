@@ -59,7 +59,7 @@ function selectGame(type) {
 		$("#id_channel").html(channelstring);
 		$("#id_channel").selectpicker("refresh");
 
-		if (type != "updatedb"){
+		if (type != "updatedb" && type!="batch_process"){
 			$("#id_version").html(versionstring);
 			$("#id_version").selectpicker("refresh");
 

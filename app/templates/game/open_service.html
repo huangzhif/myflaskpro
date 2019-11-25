@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "macro_temps.html" as form %}
 
 {% block heading %}
     {{ title }}
@@ -9,30 +10,9 @@
     <div class="col-md-9">
         <form action="" method="post" class="form form-horizontal">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="form-group">
-                <label class="control-label col-lg-2" for="game"><span style="color: red">* </span>游戏</label>
-                <div class="col-lg-10">
-                    <select class="form-control selectpicker" id="id_game" name="game" onchange="selectGame('openservice')">
-                        <option value=""></option>
-                        {% for game in games %}
-                            <option value={{ game.id }}>{{ game.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-lg-2" for="channel"><span style="color: red">* </span>渠道</label>
-                <div class="col-lg-10">
-                    <select class="form-control selectpicker" id="id_channel" name="channel" onchange="selectChannel()"></select>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label class="control-label col-lg-2" for="zone"><span style="color: red">* </span>区服</label>
-                <div class="col-lg-10">
-                    <select class="form-control selectpicker" multiple data-actions-box="true" data-live-search="true" id="id_zone" name="zone"></select>
-                </div>
-            </div>
+            {{ form.selectgame(Games,type='openservice') }}
+            {{ form.selectchannel() }}
+            {{ form.selectzone() }}
 
             <div class="form-group">
                 <label class="control-label col-lg-2" for="version"><span style="color: red">* </span>版本</label>
@@ -40,13 +20,6 @@
                     <select class="form-control selectpicker" multiple data-actions-box="true" data-live-search="true" id="id_version" name="version"></select>
                 </div>
             </div>
-
-{#            <div class="form-group">#}
-{#                <label class="control-label col-lg-2" for="iplist">目标机器</label>#}
-{#                <div class="col-lg-10">#}
-{#                    <textarea class="form-control" rows="1" id="id_ip" readonly></textarea>#}
-{#                </div>#}
-{#            </div>#}
 
             <div class="form-group">
                 <div class="col-lg-offset-2 col-lg-10">
@@ -107,11 +80,7 @@
                         }
                 },
                 success: function (e) {
-                    if (e['status']) {
-                        $("#publishlog").val(e['msg']);
-                    }
-                    else {
-                    }
+                    $("#publishlog").val(e['msg']);
                 },
                 complete: function () {
                     $('.wrapper-content').waitMe('hide');
