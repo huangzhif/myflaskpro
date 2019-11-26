@@ -27,3 +27,13 @@
     </div>
 
 {% endblock %}
+
+{% block custom_foot_js %}
+    <script type="application/javascript">
+    $('#side-menu li a').each(function () {
+        if ($($(this))[0].href == document.referrer) {
+            $(this).addClass("active").parentsUntil($("#side-menu"), "li").addClass('active').parentsUntil($("#side-menu"), "ul").addClass("collapse in");
+        }
+    })
+    </script>
+{% endblock %}

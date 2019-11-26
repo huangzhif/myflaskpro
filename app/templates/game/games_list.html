@@ -131,6 +131,11 @@
                                 url: "{{ url_for('bp_game.del_game') }}",
                                 type: "POST",
                                 data: {"name":row.name},
+                                beforeSend: function (xhr, settings) {
+                                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+                                        xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                                    }
+                                },
                                 success: function (e) {
                                     if (e['e']) {
                                         swal("删除成功", {

@@ -87,6 +87,8 @@ def del_game():
     name = request.form.get("name", "")
     game = Games.query.filter_by(name=name).first()
     if game:
+        """先删除子表数据，synchronize_session=False 删除时不进行同步"""
+        membership = Membership.query.filter_by(game_id=game.id).delete(synchronize_session=False)
         db.session.delete(game)
         db.session.commit()
         e = True
@@ -227,14 +229,18 @@ def zones_list():
 @bp_game.route("/get_zonelist",methods=["GET"])
 def get_zonelist():
     _table = []
-    memberships = Membership.query.all()
+    memberships = Membership.query.order_by("game_id","channel_id","zone_id")
     for idx,ms in enumerate(memberships,1):
         tmp = {}
         tmp["idx"] = idx
         tmp["zone_id"] = ms.zone_id
         tmp["game"] = Games.query.get(ms.game_id).name
         tmp["channel"] = Channels.query.get(ms.channel_id).name
+        tmp["zonenum"] = Zones.query.get(ms.zone_id).zonenum
         tmp["zonename"] = Zones.query.get(ms.zone_id).zonename
+        tmp["zoneip"] = Zones.query.get(ms.zone_id).zoneip
+        tmp["dblink"] = Zones.query.get(ms.zone_id).dblink
+        tmp["dbport"] = Zones.query.get(ms.zone_id).dbport
         _table.append(tmp)
 
     return jsonify(_table)
