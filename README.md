@@ -8,6 +8,7 @@
 ### 游戏模块
 1、基础数据  
 1.1、游戏维护  
+![img](https://github.com/huangzhif/myflaskpro/blob/dev/app/static/gif/games.gif) 
 1.2、渠道维护  
 1.3、区服维护
   
