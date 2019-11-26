@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block heading %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+    {{ wtf.quick_form(form,form_type='horizontal',button_map={'submit':"primary"}) }}
+    <div class="form-group">
+    <div class="col-lg-offset-2">
+        <a href="{{ url_for('bp_game.downloader') }}?filename=区服导入模板_2.xlsx">区服导入模板.xlsx</a>
+    </div>
+    </div>
+    <div class="form-group">
+    <div class="col-lg-offset-2">
+        {% if msg %}
+            {% for i in msg %}
+                {% if "错误" in i %}
+                    <p><span style="color: red">{{ i }}</span></p>
+                {% else %}
+                    <p><span style="color: cadetblue">{{ i }}</span></p>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+    </div>
+
+{% endblock %}

@@ -1,20 +1,22 @@
 import datetime
 import multiprocessing
 import os
-import time,datetime
 import pdb
 import subprocess
+import time
 import zipfile
+
 import pymysql
+import xlrd
+from app import basedir
+from app.forms.game import AEChannelForm, AEGameForm, AEZoneForm, BatchImportForm
+from app.models import Channels, Games, Membership, User, Zones, db
+from app.util import bash, myssh
+# from app.models import User
+from flask import send_from_directory,Blueprint, current_app, flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 from slugify import slugify
 
-from app.forms.game import AEChannelForm, AEGameForm, AEZoneForm
-from app.models import Channels, Games, Membership, User, Zones, db
-# from app.models import User
-from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, url_for
-from flask_login import login_required,current_user
-from app.util import myssh,bash
-from app import basedir
 try:
     import configparser
 except:
@@ -1095,3 +1097,92 @@ def func_batch(ip,scriptap,filename,q):
         current_app.logger.error(tmp["stderr"])
 
     q[ip] = tmp
+
+
+@bp_game.route("/batch_import",methods=["GET","POST"])
+@login_required
+def batch_import():
+    form = BatchImportForm()
+    msg = []
+    if form.validate_on_submit():
+        filehandler = form.excelfile.data
+        wb = xlrd.open_workbook(file_contents=filehandler.read())
+        table = wb.sheets()[0]
+        nrows = table.nrows
+        ncole = table.ncols
+
+        title = table.row_values(0)
+        try:
+            moduletitle = [title[col].strip() for col in range(ncole)]
+
+            module = ["序号","游戏","渠道","区服号","区服名称","区服IP","数据库链接","数据库端口","数据库A","数据库B","数据库C"]
+            if not moduletitle == module:
+                raise Exception("模板格式错误！")
+
+            for i in range(1,nrows):
+                rowvalues = table.row_values(i)
+                game = rowvalues[1].strip()
+                channel = rowvalues[2].strip()
+
+                if isinstance(rowvalues[3],float):
+                    zonenum = int(rowvalues[3])
+                else:
+                    zonenum = rowvalues[3].strip()
+
+                if isinstance(rowvalues[7],float):
+                    DB_port = int(rowvalues[7])
+                else:
+                    DB_port = rowvalues[7].strip()
+
+                gameobj = Games.query.filter_by(name=game).first()
+                channelobj = Channels.query.filter_by(name=channel).first()
+
+                if not gameobj:
+                    msg.append("第 {i} 行导入错误：没有该游戏！".format(i=i))
+                    continue
+
+                if not channelobj:
+                    msg.append("第 {i} 行导入错误：没有该渠道！".format(i=i))
+                    continue
+
+                if not zonenum:
+                    msg.append("第 {i} 行导入错误：区服号不能为空！".format(i=i))
+                    continue
+
+                if not rowvalues[4].strip():
+                    msg.append("第 {i} 行导入错误：区服名称不能为空！".format(i=i))
+                    continue
+
+                if not rowvalues[5].strip():
+                    msg.append("第 {i} 行导入错误：区服IP不能为空！".format(i=i))
+                    continue
+
+                zoneobj = Zones(zonenum=zonenum,zonename=rowvalues[4].strip(),
+                                zoneip=rowvalues[5].strip(),
+                                dblink=rowvalues[6].strip(),
+                                dbport=DB_port,
+                                db_A=rowvalues[8].strip(),
+                                db_B=rowvalues[9].strip(),
+                                db_C=rowvalues[10].strip(),
+                                )
+
+                db.session.add(zoneobj)
+                db.session.commit()
+
+                membership = Membership(game=gameobj,channel=channelobj,zone=zoneobj)
+                db.session.add(membership)
+                db.session.commit()
+
+                msg.append("第 {i} 行导入成功！".format(i=i))
+
+        except Exception as e:
+            msg.append(str(e))
+
+    return render_template("game/batch_import.html", form=form, title="批量导入",msg=msg)
+
+
+@bp_game.route("/downloader",methods=["GET"])
+@login_required
+def downloader():
+    filename = request.args.get("filename")
+    return send_from_directory(os.path.join(basedir,"downloadpkg"),filename,as_attachment=True)

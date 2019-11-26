@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms import StringField,SubmitField,HiddenField,TextAreaField,SelectField
 from wtforms.validators import DataRequired,Optional
 from app.models import Games,Channels
@@ -68,6 +69,15 @@ class AEZoneForm(FlaskForm):
         self.channel.choices = [(channel.id, channel.name) for channel in
                                 Channels.query.all()]
 
+
+class BatchImportForm(FlaskForm):
+    """批量导入区服表单"""
+    excelfile = FileField("文件上传",validators=[FileRequired("未选择文件！"),FileAllowed(['xlsx'])])
+    submit = SubmitField(render_kw={
+            'value': "上传",
+            'class': 'btn btn-sm btn-success'
+        }
+    )
 
 # class ServerInitForm(FlaskForm):
 #     """服务初始化表单"""
