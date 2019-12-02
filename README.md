@@ -3,19 +3,20 @@
 
 
 ### 用户管理
-1、用户信息维护1
+1、用户信息维护
 
 ### 游戏模块
 1、基础数据  
-1.1、游戏维护  
+#### 1.1、游戏维护  
 ![img](https://github.com/huangzhif/myflaskpro/blob/dev/app/static/gif/games.gif)   
 1.2、渠道维护  
 1.3、区服维护
   
-2、服务初始化  
+#### 2、服务初始化  
 ![img](https://github.com/huangzhif/myflaskpro/blob/dev/app/static/gif/initservice.gif)   
 
-3、新服搭建  
+#### 3、新服搭建  
+![img](https://github.com/huangzhif/myflaskpro/blob/dev/app/static/gif/openservice.gif)
 4、程序更新  
 5、数据库更新  
 6、启停游戏  
