@@ -2,6 +2,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from app.extensions import db,login_manager
 from hashlib import md5
+from sqlalchemy.sql import expression
 
 
 class User(UserMixin, db.Model):
@@ -96,7 +97,7 @@ class Channels(db.Model):
 
 class Zones(db.Model):
     """
-    区服表
+    区服表,自关联
     """
     __tablename__ = "t_zones"
     id = db.Column(db.Integer, primary_key=True)
@@ -108,6 +109,11 @@ class Zones(db.Model):
     db_A = db.Column(db.String(length=10))
     db_B = db.Column(db.String(length=10))
     db_C = db.Column(db.String(length=10))
+    status = db.Column(db.Boolean,server_default=expression.true(),nullable=False)
+
+    # 自关联
+    parant_id = db.Column(db.Integer,db.ForeignKey("t_zones.id"))
+    parent = db.relationship("Zones",backref="children",remote_side=[id])
 
     # channel_id = db.Column(db.Integer, db.ForeignKey('t_channels.id'))
 
