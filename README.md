@@ -16,8 +16,15 @@
 ![img](https://github.com/huangzhif/myflaskpro/blob/dev/app/static/gif/initservice.gif)   
 
 #### 3、新服搭建  
-![img](https://github.com/huangzhif/myflaskpro/blob/dev/app/static/gif/openservice.gif)
-4、程序更新  
-5、数据库更新  
-6、启停游戏  
-7、批处理  
+![img](https://github.com/huangzhif/myflaskpro/blob/dev/app/static/gif/openservice.gif)  
+
+#### 4、程序更新  
+![img](https://github.com/huangzhif/myflaskpro/blob/dev/app/static/gif/update_program.gif)  
+
+#### 5、数据库更新  
+
+#### 6、启停游戏  
+![img](https://github.com/huangzhif/myflaskpro/blob/dev/app/static/gif/toggle_service.gif)  
+
+#### 7、批处理  
+![img](https://github.com/huangzhif/myflaskpro/blob/dev/app/static/gif/batch_process.gif)  
