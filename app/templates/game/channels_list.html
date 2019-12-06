@@ -17,6 +17,7 @@
 
 {% block custom_foot_js %}
     <script>
+    var csrftoken = $('meta[name=csrf-token]').attr('content');
     var operateFormatter = function (value, row, index) {//赋予的参数
         return [
             '<a href="#" id="edit" class="btn btn-sm btn-info" title="编辑"><i class="fa fa-pencil fa-fw"></i></a>',
@@ -42,7 +43,17 @@
                             $.ajax({
                                 url: "{{ url_for('bp_game.del_channel') }}",
                                 type: "POST",
-                                data: {"name":row.name},
+                                traditional: true,
+                                dataType:"json",
+                                contentType: "application/json",
+                                data: JSON.stringify({"name":row.name}),
+                                beforeSend: function (xhr, settings) {
+                                    $("#publishlog").val("");
+                                    run_waitMe($('.wrapper-content'), 1, 'progressBar');
+                                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+                                        xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                                    }
+                                },
                                 success: function (e) {
                                     if (e['e']) {
                                         swal("删除成功", {
@@ -53,6 +64,9 @@
 
                                     }
                                 },
+                                complete: function () {
+                                    $('.wrapper-content').waitMe('hide');
+                                }
                             })
                             {#            });#}
                         } else {

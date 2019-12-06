@@ -190,7 +190,7 @@ def create_channel():
 @bp_game.route("/del_channel", methods=["GET", "POST"])
 @login_required
 def del_channel():
-    name = request.form.get("name", "")
+    name = request.json["name"]
     channel = Channels.query.filter_by(name=name).first()
     if channel:
         db.session.delete(channel)
@@ -299,12 +299,15 @@ def create_zone(zone_id):
 @bp_game.route("/del_zone", methods=["POST"])
 @login_required
 def del_zone():
-    zone_id = request.form.get("zone_id", "")
+    zone_id = request.json["zone_id"]
     membership = Membership.query.filter_by(zone_id=zone_id).first()
     zone = Zones.query.get(zone_id)
     # 以下删除顺序 需要先删除关系表，在删除zone 表数据
-    db.session.delete(zone)
+
     db.session.delete(membership)
+    db.session.commit()
+
+    db.session.delete(zone)
 
     db.session.commit()
     return jsonify({"e": True, "msg": "succeed"})
@@ -845,6 +848,7 @@ def update_db():
 
             pool.close()
             pool.join()
+            print(q)
 
             total = ""
             """一台服务器可能有多个数据库，需要分类显示 """

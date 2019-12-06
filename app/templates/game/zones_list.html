@@ -20,6 +20,8 @@
 
 {% block custom_foot_js %}
     <script>
+    var csrftoken = $('meta[name=csrf-token]').attr('content');
+
     var operateFormatter = function (value, row, index) {//赋予的参数
         return [
             '<a href="#" id="copy" class="btn btn-sm btn-success" title="拷贝"><i class="fa fa-copy fa-fw"></i></a>',
@@ -50,7 +52,17 @@
                             $.ajax({
                                 url: "{{ url_for('bp_game.del_zone') }}",
                                 type: "POST",
-                                data: {"zone_id":row.zone_id},
+                                traditional: true,
+                                dataType:"json",
+                                contentType: "application/json",
+                                data: JSON.stringify({"zone_id":row.zone_id}),
+                                beforeSend: function (xhr, settings) {
+                                    $("#publishlog").val("");
+                                    run_waitMe($('.wrapper-content'), 1, 'progressBar');
+                                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+                                        xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                                    }
+                                },
                                 success: function (e) {
                                     if (e['e']) {
                                         swal("删除成功", {
@@ -61,6 +73,9 @@
 
                                     }
                                 },
+                                complete: function () {
+                                    $('.wrapper-content').waitMe('hide');
+                                }
                             })
                             {#            });#}
                         } else {
