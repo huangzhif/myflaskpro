@@ -22,6 +22,7 @@
 ![img](https://github.com/huangzhif/myflaskpro/blob/dev/app/static/gif/update_program.gif)  
 
 #### 5、数据库更新  
+![img](https://github.com/huangzhif/myflaskpro/blob/dev/app/static/gif/db_update.png)  
 
 #### 6、启停游戏  
 ![img](https://github.com/huangzhif/myflaskpro/blob/dev/app/static/gif/toggle_service.gif)  
