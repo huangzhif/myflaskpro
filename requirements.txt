@@ -33,7 +33,7 @@ ptyprocess==0.6.0
 pyasn1==0.4.7
 pycparser==2.19
 pycryptodome==3.9.1
-Pygments==2.4.2
+Pygments==2.7.4
 PyMySQL==0.9.3
 python-dateutil==2.8.1
 python-dotenv==0.10.3
