@@ -24,7 +24,7 @@ Jinja2==2.10.3
 Mako==1.1.0
 MarkupSafe==1.1.1
 mysqlclient==1.4.4
-paramiko==2.1.1
+paramiko==2.10.1
 parso==0.5.1
 pexpect==4.7.0
 pickleshare==0.7.5
